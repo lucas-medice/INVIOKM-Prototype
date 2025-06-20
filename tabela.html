@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>INVIOKM - Tabela</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Aldrich&family=IBM+Plex+Mono&family=IBM+Plex+Sans&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="script.js" defer></script>
+    <link rel="shortcut icon" href="assets/favicon_io/favicon.ico" type="image/x-icon">
+    <style>
+        .modal-overlay, .form-group, .form-buttons, #btnSaida, #btnChegada {
+            display: none !important;
+        }
+        .tabela tbody tr:hover {
+            cursor: default;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <nav>
+            <div class="logo-nav">
+                <img src="assets/logo-inviolavel-removebg-preview.png" alt="Logo">
+            </div>
+            <div class="data" id="data"><p></p></div>
+        </nav>
+    </header>
+
+    <main>
+        <div class="box">
+
+            <!-- Botão de exportação -->
+            <div class="botoes">
+                <button id="btnExportar">📤 Exportar para Excel</button>
+            </div>
+
+            <!-- Tabela -->
+            <table class="tabela">
+                <thead>
+                    <tr>
+                        <th>Atendente</th>
+                        <th>Destinos</th>
+                        <th>KM de saída</th>
+                        <th>Horário de saída</th>
+                        <th>KM de chegada</th>
+                        <th>Horário de chegada</th>
+                        <th>OBS</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+
+        </div>
+    </main>
+
+    <footer></footer>
+
+    <script>
+  document.addEventListener("DOMContentLoaded", () => {
+    // Exportar para Excel
+    const btnExportar = document.getElementById('btnExportar');
+    btnExportar.addEventListener('click', () => {
+      const tabelaDOM = document.querySelector('.tabela');
+      const wb = XLSX.utils.table_to_book(tabelaDOM, { sheet: "Ocorrencias" });
+      XLSX.writeFile(wb, 'ocorrencias.xlsx');
+    });
+
+    // Carregar dados da cópia permanente
+    const tabela = document.querySelector('.tabela tbody');
+    const dados = JSON.parse(localStorage.getItem('tabelaBackup'));
+    if (dados) {
+      dados.forEach(row => {
+        const novaLinha = tabela.insertRow();
+        row.forEach(texto => {
+          const celula = novaLinha.insertCell();
+          celula.innerText = texto;
+        });
+      });
+    }
+
+    // Prevenir interações
+    tabela.addEventListener('click', (e) => {
+      e.stopPropagation();
+      alert("🔒 A tabela é somente para visualização.");
+    });
+  });
+</script>
+
+
+
+
+<!-- Proteções do lado cliente -->
+<script>
+  // Bloqueia fechamento acidental da aba
+  window.addEventListener("beforeunload", function (e) {
+    e.preventDefault();
+    e.returnValue = "";
+  });
+
+  // Impede múltiplos envios de formulário
+  let formulario = document.querySelector("form");
+  if (formulario) {
+    let enviado = false;
+    formulario.addEventListener("submit", function (e) {
+      if (enviado) {
+        e.preventDefault();
+        alert("⚠️ Formulário já enviado. Aguarde.");
+      } else {
+        enviado = true;
+      }
+    });
+  }
+
+  // Protege localStorage contra estouro
+  function salvarLocalmente(chave, valor) {
+    try {
+      localStorage.setItem(chave, JSON.stringify(valor));
+    } catch (e) {
+      alert("⚠️ Espaço de armazenamento local insuficiente.");
+    }
+  }
+
+  // Validação básica de exemplo
+  function validarEmail(campoId) {
+    const email = document.getElementById(campoId)?.value;
+    if (email && !email.includes("@")) {
+      alert("E-mail inválido.");
+      return false;
+    }
+    return true;
+  }
+
+  // Detecta ferramentas de desenvolvedor abertas (básico)
+  setInterval(() => {
+    if (window.outerWidth - window.innerWidth > 160) {
+      console.warn("🔒 DevTools pode estar aberto.");
+    }
+  }, 3000);
+</script>
+
+
+    <div style="text-align: center; margin-top: 20px;">
+        <button onclick="limparDadosTabela()" style="padding: 10px 20px; font-size: 16px; cursor: pointer;">
+            🗑️ Limpar Dados da Tabela
+        </button>
+    </div>
+
+</body>
+</html>

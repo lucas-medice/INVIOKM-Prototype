@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>INVIOKM - Painel</title>
+  <link rel="stylesheet" href="style.css"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Aldrich&family=IBM+Plex+Mono&family=IBM+Plex+Sans&display=swap" rel="stylesheet"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="script.js" defer></script>
+  <link rel="shortcut icon" href="assets/favicon_io/favicon.ico" type="image/x-icon">
+</head>
+
+<body>
+  <header>
+    <nav>
+      <div class="logo-nav">
+        <img src="assets/logo-inviolavel-removebg-preview-1.png" alt="Logo" />
+      </div>
+      <div class="data" id="data"><p></p></div>
+    </nav>
+  </header>
+
+  <main>
+    <div class="box">
+
+      <!-- Botões -->
+      <div class="botoes">
+        <button id="btnSaida">➕ Registrar Saída</button>
+        <button id="btnChegada">🔒 Fechar Ocorrência</button>
+        <a href="tabela.html" target="_blank">
+          <button type="button">📄 Ver Tabela</button>
+        </a>
+      </div>
+
+      <!-- Tabela -->
+      <table class="tabela">
+        <thead>
+          <tr>
+            <th>Atendente</th>
+            <th>Destinos</th>
+            <th>KM de saída</th>
+            <th>Horário de saída</th>
+            <th>KM de chegada</th>
+            <th>Horário de chegada</th>
+            <th>OBS</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+
+      <!-- Modal -->
+      <div class="modal-overlay" id="modal">
+        <div class="modal">
+          <h2 id="modal-title">Registrar Saída</h2>
+          <form id="modal-form">
+            <div class="form-group">
+              <label for="atendente">Atendente:</label>
+              <input type="text" id="atendente" />
+            </div>
+            <div class="form-group">
+              <label for="destinos">Destinos:</label>
+              <input type="text" id="destinos" />
+            </div>
+            <div class="form-group">
+              <label for="kmSaida">KM de Saída:</label>
+              <input type="number" id="kmSaida" />
+            </div>
+            <div class="form-group chegada-only">
+              <label for="kmChegada">KM de Chegada:</label>
+              <input type="number" id="kmChegada" />
+            </div>
+            <div class="form-group chegada-only">
+              <label for="obs">Observações:</label>
+              <input type="text" id="obs" />
+            </div>
+            <div class="form-buttons">
+              <button type="submit" class="confirm">Confirmar</button>
+              <button type="button" class="cancel" id="cancelar">Cancelar</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Alerta -->
+      <div id="alerta" class="alerta" style="display: none;"></div>
+
+    </div>
+  </main>
+
+  <footer></footer>
+
+<!-- Proteções do lado cliente -->
+<script>
+  // Bloqueia fechamento acidental da aba
+  window.addEventListener("beforeunload", function (e) {
+    e.preventDefault();
+    e.returnValue = "";
+  });
+
+  // Impede múltiplos envios de formulário
+  let formulario = document.querySelector("form");
+  if (formulario) {
+    let enviado = false;
+    formulario.addEventListener("submit", function (e) {
+      if (enviado) {
+        e.preventDefault();
+        alert("⚠️ Formulário já enviado. Aguarde.");
+      } else {
+        enviado = true;
+      }
+    });
+  }
+
+  // Protege localStorage contra estouro
+  function salvarLocalmente(chave, valor) {
+    try {
+      localStorage.setItem(chave, JSON.stringify(valor));
+    } catch (e) {
+      alert("⚠️ Espaço de armazenamento local insuficiente.");
+    }
+  }
+
+  // Validação básica de exemplo
+  function validarEmail(campoId) {
+    const email = document.getElementById(campoId)?.value;
+    if (email && !email.includes("@")) {
+      alert("E-mail inválido.");
+      return false;
+    }
+    return true;
+  }
+
+  // Detecta ferramentas de desenvolvedor abertas (básico)
+  setInterval(() => {
+    if (window.outerWidth - window.innerWidth > 160) {
+      console.warn("🔒 DevTools pode estar aberto.");
+    }
+  }, 3000);
+</script>
+
+</body>
+</html>
