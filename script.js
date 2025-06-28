@@ -27,6 +27,7 @@ const form = document.getElementById('modal-form');
 const cancelar = document.getElementById('cancelar');
 
 const atendenteInput = document.getElementById('atendente');
+const movelInput = document.getElementById('movel');
 const destinosInput = document.getElementById('destinos');
 const kmSaidaInput = document.getElementById('kmSaida');
 const kmChegadaInput = document.getElementById('kmChegada');
@@ -34,6 +35,16 @@ const obsInput = document.getElementById('obs');
 
 let modo = '';
 let linhaSelecionada = null;
+const historicoMovel = JSON.parse(localStorage.getItem('historicoMovel')) || {};
+
+function preencherKmAutomatico() {
+  const movel = movelInput.value.trim();
+  if (movel && historicoMovel[movel]) {
+    if (confirm(`Preencher automaticamente o KM de saída com ${historicoMovel[movel]}KM (último registro do móvel ${movel})?`)) {
+      kmSaidaInput.value = historicoMovel[movel];
+    }
+  }
+}
 
 function abrirModal(tipo, linha = null) {
   modo = tipo;
@@ -43,8 +54,11 @@ function abrirModal(tipo, linha = null) {
 
   if (tipo === 'saida') {
     modalTitle.innerText = 'Registrar Saída';
-    mostrarCampos(['atendente', 'destinos', 'kmSaida']);
+    mostrarCampos(['atendente', 'movel', 'destinos', 'kmSaida']);
     ocultarCampos(['kmChegada', 'obs']);
+    
+    movelInput.removeEventListener('change', preencherKmAutomatico);
+    movelInput.addEventListener('change', preencherKmAutomatico);
   }
 
   if (tipo === 'chegada') {
@@ -55,7 +69,11 @@ function abrirModal(tipo, linha = null) {
     }
     modalTitle.innerText = 'Fechar Ocorrência';
     mostrarCampos(['kmChegada', 'obs']);
-    ocultarCampos(['atendente', 'destinos', 'kmSaida']);
+    ocultarCampos(['atendente', 'movel', 'destinos', 'kmSaida']);
+    
+    // Preenche com os valores atuais
+    kmChegadaInput.value = linha.cells[5].innerText || '';
+    obsInput.value = linha.cells[7].innerText || linha.getAttribute('data-observacao') || '';
   }
 
   if (tipo === 'editar') {
@@ -64,14 +82,23 @@ function abrirModal(tipo, linha = null) {
       fecharModal();
       return;
     }
-    const coluna = linha.coluna;
-    const textoAtual = linha.celula.innerText;
-    modalTitle.innerText = `Editar ${coluna === 1 ? 'Destinos' : 'Observações'}`;
-    mostrarCampos(['obs']);
-    ocultarCampos(['atendente', 'destinos', 'kmSaida', 'kmChegada']);
     
-        obsInput.value = linhaSelecionada.getAttribute('data-observacao') || textoAtual;
-        
+    const coluna = linha.coluna;
+    const celula = linha.celula;
+    const textoAtual = celula.innerText;
+    
+    if (coluna === 2) { // Editar Destinos
+      modalTitle.innerText = 'Editar Destinos';
+      mostrarCampos(['destinos']);
+      ocultarCampos(['atendente', 'movel', 'kmSaida', 'kmChegada', 'obs']);
+      destinosInput.value = textoAtual;
+    } 
+    else if (coluna === 7) { // Editar Observações
+      modalTitle.innerText = 'Editar Observações';
+      mostrarCampos(['obs']);
+      ocultarCampos(['atendente', 'movel', 'destinos', 'kmSaida', 'kmChegada']);
+      obsInput.value = textoAtual || linhaSelecionada.getAttribute('data-observacao') || '';
+    }
   }
 }
 
@@ -107,38 +134,41 @@ form.addEventListener('submit', (e) => {
 
   if (modo === 'saida') {
     const novaLinha = tabela.insertRow();
+    const movel = movelInput.value.trim();
+    
     novaLinha.insertCell(0).innerText = atendenteInput.value;
-    novaLinha.insertCell(1).innerText = destinosInput.value;
-    novaLinha.insertCell(2).innerText = kmSaidaInput.value;
-    novaLinha.insertCell(3).innerText = obterDataHora();
-    novaLinha.insertCell(4).innerText = '';
+    novaLinha.insertCell(1).innerText = movel;
+    novaLinha.insertCell(2).innerText = destinosInput.value;
+    novaLinha.insertCell(3).innerText = kmSaidaInput.value;
+    novaLinha.insertCell(4).innerText = obterDataHora();
     novaLinha.insertCell(5).innerText = '';
     novaLinha.insertCell(6).innerText = '';
+    novaLinha.insertCell(7).innerText = '';
     aplicarTooltips(novaLinha);
     salvarDadosPainel();
-    // não salva no backup ainda
   }
 
   if (modo === 'chegada') {
-    const kmSaida = parseFloat(linhaSelecionada.cells[2].innerText);
+    const kmSaida = parseFloat(linhaSelecionada.cells[3].innerText);
     const kmChegada = parseFloat(kmChegadaInput.value);
+    const movel = linhaSelecionada.cells[1].innerText.trim();
+    
     if (isNaN(kmChegada) || kmChegada < kmSaida) {
       mostrarAlerta("❌ O KM de chegada não pode ser menor que o KM de saída.");
       return;
     }
 
-    // Atualiza painel
-    linhaSelecionada.cells[4].innerText = kmChegada;
-    linhaSelecionada.cells[5].innerText = obterDataHora();
-    
-        linhaSelecionada.cells[6].innerText = obsInput.value || '';
-        linhaSelecionada.setAttribute('data-observacao', obsInput.value || '');
-        
+    historicoMovel[movel] = kmChegada;
+    localStorage.setItem('historicoMovel', JSON.stringify(historicoMovel));
+
+    linhaSelecionada.cells[5].innerText = kmChegada;
+    linhaSelecionada.cells[6].innerText = obterDataHora();
+    linhaSelecionada.cells[7].innerText = obsInput.value || '';
+    linhaSelecionada.setAttribute('data-observacao', obsInput.value || '');
     salvarDadosPainel();
 
-    // Adiciona nova linha ao backup (como histórico)
     const novaOcorrencia = [];
-    for (let i = 0; i < 7; i++) {
+    for (let i = 0; i < 8; i++) {
       novaOcorrencia.push(linhaSelecionada.cells[i].innerText);
     }
 
@@ -148,16 +178,25 @@ form.addEventListener('submit', (e) => {
   }
 
   if (modo === 'editar') {
-    linhaSelecionada.celula.innerText = obsInput.value;
-    salvarDadosPainel(); // edição apenas no painel
+    const coluna = linhaSelecionada.coluna;
+    const celula = linhaSelecionada.celula;
+    
+    if (coluna === 2) {
+      celula.innerText = destinosInput.value;
+    } else if (coluna === 7) {
+      celula.innerText = obsInput.value;
+      linhaSelecionada.setAttribute('data-observacao', obsInput.value || '');
+    }
+    
+    salvarDadosPainel();
   }
 
   fecharModal();
 });
 
 function aplicarTooltips(linha) {
-  linha.cells[1].setAttribute('title', 'Clique para editar destinos');
-  linha.cells[6].setAttribute('title', 'Clique para editar observações');
+  linha.cells[2].setAttribute('title', 'Clique para editar destinos');
+  linha.cells[7].setAttribute('title', 'Clique para editar observações');
 }
 
 tabela.addEventListener('click', function (e) {
@@ -176,11 +215,11 @@ tabela.addEventListener('click', function (e) {
   }
 
   const coluna = alvo.cellIndex;
-  if (coluna === 1 || coluna === 6) {
-    abrirModal('editar', { celula: alvo, coluna });
+  if (coluna === 2 || coluna === 7) {
+    abrirModal('editar', { celula: alvo, coluna, linha });
   } else if (confirm("Deseja excluir esta linha?")) {
     linha.remove();
-    salvarDadosPainel(); // apenas painel
+    salvarDadosPainel();
   }
 });
 
@@ -198,13 +237,17 @@ function salvarDadosPainel() {
 
 function carregarDados() {
   const dados = JSON.parse(localStorage.getItem('tabelaKM'));
+  const historico = JSON.parse(localStorage.getItem('historicoMovel')) || {};
+  
+  Object.assign(historicoMovel, historico);
+
   if (dados) {
     dados.forEach(row => {
       const novaLinha = tabela.insertRow();
-      row.forEach(texto => {
+      for (let i = 0; i < 8; i++) {
         const celula = novaLinha.insertCell();
-        celula.innerText = texto;
-      });
+        celula.innerText = row[i] || '';
+      }
       aplicarTooltips(novaLinha);
     });
   }
@@ -231,16 +274,11 @@ window.addEventListener("beforeunload", function (e) {
   }
 });
 
-// Prevenir fechamento acidental da aba
-window.addEventListener('beforeunload', function (e) {
-  e.preventDefault();
-  e.returnValue = '';
-});
-
-// Função para limpar dados armazenados da tabela
 function limparDadosTabela() {
   if (confirm('Deseja realmente apagar todos os dados da tabela?')) {
-    localStorage.clear();
-    location.reload();
+    if (confirm('Isso também limpará o histórico de KMs dos móveis. Continuar?')) {
+      localStorage.clear();
+      location.reload();
+    }
   }
 }

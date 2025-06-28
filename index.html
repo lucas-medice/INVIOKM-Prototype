@@ -40,6 +40,7 @@
         <thead>
           <tr>
             <th>Atendente</th>
+            <th>Móvel</th>
             <th>Destinos</th>
             <th>KM de saída</th>
             <th>Horário de saída</th>
@@ -59,6 +60,10 @@
             <div class="form-group">
               <label for="atendente">Atendente:</label>
               <input type="text" id="atendente" />
+            </div>
+            <div class="form-group">
+              <label for="movel">Móvel:</label>
+              <input type="text" id="movel" />
             </div>
             <div class="form-group">
               <label for="destinos">Destinos:</label>
@@ -92,7 +97,6 @@
 
   <footer></footer>
 
-<!-- Proteções do lado cliente -->
 <script>
   // Bloqueia fechamento acidental da aba
   window.addEventListener("beforeunload", function (e) {
@@ -122,23 +126,6 @@
       alert("⚠️ Espaço de armazenamento local insuficiente.");
     }
   }
-
-  // Validação básica de exemplo
-  function validarEmail(campoId) {
-    const email = document.getElementById(campoId)?.value;
-    if (email && !email.includes("@")) {
-      alert("E-mail inválido.");
-      return false;
-    }
-    return true;
-  }
-
-  // Detecta ferramentas de desenvolvedor abertas (básico)
-  setInterval(() => {
-    if (window.outerWidth - window.innerWidth > 160) {
-      console.warn("🔒 DevTools pode estar aberto.");
-    }
-  }, 3000);
 </script>
 
 </body>

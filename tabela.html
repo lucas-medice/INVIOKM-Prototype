@@ -9,14 +9,118 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Aldrich&family=IBM+Plex+Mono&family=IBM+Plex+Sans&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="script.js" defer></script>
     <link rel="shortcut icon" href="assets/favicon_io/favicon.ico" type="image/x-icon">
     <style>
-        .modal-overlay, .form-group, .form-buttons, #btnSaida, #btnChegada {
+        /* Estilos otimizados */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+        
+        .form-group, .form-buttons, #btnSaida, #btnChegada {
             display: none !important;
         }
-        .tabela tbody tr:hover {
-            cursor: default;
+        
+        /* Estilo para linhas da tabela */
+        .tabela tbody tr {
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+        
+        /* Efeito hover suave */
+        .tabela tbody tr:not(.selecionada):hover {
+            background-color: #f0f0f0 !important;
+        }
+        
+        /* Estilo para linha selecionada */
+        .tabela tbody tr.selecionada {
+            background-color: #e1f5fe !important;
+            box-shadow: 0 0 0 2px #0288d1;
+        }
+        
+        /* Botão Alterar estilizado */
+        #btnAlterar {
+            background: linear-gradient(135deg, #0288d1, #02669d);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        #btnAlterar:hover {
+            background: linear-gradient(135deg, #0277bd, #01579b);
+        }
+        
+        #btnAlterar:disabled {
+            background: #b0bec5;
+            cursor: not-allowed;
+        }
+        
+        /* Modal de edição */
+        .modal-edicao {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            width: 500px;
+            max-width: 90%;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+            display: block !important;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .form-buttons {
+            display: flex !important;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        
+        .form-buttons button {
+            padding: 8px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .confirm {
+            background-color: #0288d1;
+            color: white;
+            border: none;
+        }
+        
+        .cancel {
+            background-color: #f44336;
+            color: white;
+            border: none;
         }
     </style>
 </head>
@@ -33,10 +137,10 @@
 
     <main>
         <div class="box">
-
-            <!-- Botão de exportação -->
+            <!-- Botões -->
             <div class="botoes">
                 <button id="btnExportar">📤 Exportar para Excel</button>
+                <button id="btnAlterar" disabled>✏️ Alterar Linha</button>
             </div>
 
             <!-- Tabela -->
@@ -44,6 +148,7 @@
                 <thead>
                     <tr>
                         <th>Atendente</th>
+                        <th>Móvel</th>
                         <th>Destinos</th>
                         <th>KM de saída</th>
                         <th>Horário de saída</th>
@@ -55,100 +160,191 @@
                 <tbody></tbody>
             </table>
 
+            <!-- Modal de Edição -->
+            <div class="modal-overlay" id="modal-edicao">
+                <div class="modal-edicao">
+                    <h2>Editar Linha Completa</h2>
+                    <form id="form-edicao">
+                        <div class="form-group">
+                            <label for="editar-atendente">Atendente:</label>
+                            <input type="text" id="editar-atendente" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="editar-movel">Móvel:</label>
+                            <input type="text" id="editar-movel" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="editar-destinos">Destinos:</label>
+                            <input type="text" id="editar-destinos" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="editar-kmSaida">KM de Saída:</label>
+                            <input type="number" id="editar-kmSaida" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="editar-kmChegada">KM de Chegada:</label>
+                            <input type="number" id="editar-kmChegada">
+                        </div>
+                        <div class="form-group">
+                            <label for="editar-obs">Observações:</label>
+                            <textarea id="editar-obs" rows="3"></textarea>
+                        </div>
+                        <div class="form-buttons">
+                            <button type="submit" class="confirm">💾 Salvar</button>
+                            <button type="button" class="cancel" id="cancelar-edicao">✖ Cancelar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Alerta -->
+            <div id="alerta" class="alerta" style="display: none;"></div>
         </div>
     </main>
 
-    <footer></footer>
-
     <script>
-  document.addEventListener("DOMContentLoaded", () => {
-    // Exportar para Excel
-    const btnExportar = document.getElementById('btnExportar');
-    btnExportar.addEventListener('click', () => {
-      const tabelaDOM = document.querySelector('.tabela');
-      const wb = XLSX.utils.table_to_book(tabelaDOM, { sheet: "Ocorrencias" });
-      XLSX.writeFile(wb, 'ocorrencias.xlsx');
-    });
+        document.addEventListener("DOMContentLoaded", () => {
+            // Elementos da interface
+            const btnExportar = document.getElementById('btnExportar');
+            const btnAlterar = document.getElementById('btnAlterar');
+            const tabela = document.querySelector('.tabela tbody');
+            const modalEdicao = document.getElementById('modal-edicao');
+            const formEdicao = document.getElementById('form-edicao');
+            const cancelarEdicao = document.getElementById('cancelar-edicao');
+            
+            let linhaSelecionada = null;
 
-    // Carregar dados da cópia permanente
-    const tabela = document.querySelector('.tabela tbody');
-    const dados = JSON.parse(localStorage.getItem('tabelaBackup'));
-    if (dados) {
-      dados.forEach(row => {
-        const novaLinha = tabela.insertRow();
-        row.forEach(texto => {
-          const celula = novaLinha.insertCell();
-          celula.innerText = texto;
+            // Carregar dados
+            const dados = JSON.parse(localStorage.getItem('tabelaBackup')) || [];
+            dados.forEach(row => {
+                const novaLinha = tabela.insertRow();
+                for (let i = 0; i < 8; i++) {
+                    const celula = novaLinha.insertCell();
+                    celula.innerText = row[i] || '';
+                }
+            });
+
+            // Selecionar linha
+            tabela.addEventListener('click', (e) => {
+                const linha = e.target.closest('tr');
+                if (!linha) return;
+                
+                // Desselecionar todas as linhas
+                document.querySelectorAll('.tabela tbody tr').forEach(tr => {
+                    tr.classList.remove('selecionada');
+                });
+                
+                // Selecionar nova linha
+                linha.classList.add('selecionada');
+                linhaSelecionada = linha;
+                btnAlterar.disabled = false;
+            });
+
+            // Exportar para Excel
+            btnExportar.addEventListener('click', () => {
+                const tabelaDOM = document.querySelector('.tabela');
+                const wb = XLSX.utils.table_to_book(tabelaDOM, { sheet: "Ocorrencias" });
+                XLSX.writeFile(wb, 'ocorrencias.xlsx');
+                mostrarAlerta('Planilha exportada com sucesso!');
+            });
+
+            // Botão Alterar - CORREÇÃO PRINCIPAL AQUI
+            btnAlterar.addEventListener('click', () => {
+                if (!linhaSelecionada) {
+                    mostrarAlerta('Selecione uma linha para editar');
+                    return;
+                }
+                
+                // Preencher modal com dados da linha
+                document.getElementById('editar-atendente').value = linhaSelecionada.cells[0].innerText;
+                document.getElementById('editar-movel').value = linhaSelecionada.cells[1].innerText;
+                document.getElementById('editar-destinos').value = linhaSelecionada.cells[2].innerText;
+                document.getElementById('editar-kmSaida').value = linhaSelecionada.cells[3].innerText;
+                document.getElementById('editar-kmChegada').value = linhaSelecionada.cells[5].innerText;
+                document.getElementById('editar-obs').value = linhaSelecionada.cells[7].innerText;
+                
+                // CORREÇÃO: Mostrar o modal corretamente
+                modalEdicao.style.display = 'flex';
+            });
+
+            // Cancelar edição
+            cancelarEdicao.addEventListener('click', () => {
+                modalEdicao.style.display = 'none';
+            });
+
+            // Salvar edição
+            formEdicao.addEventListener('submit', (e) => {
+                e.preventDefault();
+                
+                const kmSaida = parseFloat(document.getElementById('editar-kmSaida').value);
+                const kmChegada = parseFloat(document.getElementById('editar-kmChegada').value) || 0;
+                
+                if (kmChegada > 0 && kmChegada < kmSaida) {
+                    mostrarAlerta("O KM de chegada não pode ser menor que o KM de saída.");
+                    return;
+                }
+
+                // Atualizar linha
+                linhaSelecionada.cells[0].innerText = document.getElementById('editar-atendente').value;
+                linhaSelecionada.cells[1].innerText = document.getElementById('editar-movel').value;
+                linhaSelecionada.cells[2].innerText = document.getElementById('editar-destinos').value;
+                linhaSelecionada.cells[3].innerText = document.getElementById('editar-kmSaida').value;
+                linhaSelecionada.cells[5].innerText = kmChegada > 0 ? kmChegada : '';
+                linhaSelecionada.cells[7].innerText = document.getElementById('editar-obs').value;
+                
+                // Atualizar localStorage
+                const dadosAtualizados = [];
+                document.querySelectorAll('.tabela tbody tr').forEach(linha => {
+                    const row = [];
+                    for (let i = 0; i < 8; i++) {
+                        row.push(linha.cells[i].innerText);
+                    }
+                    dadosAtualizados.push(row);
+                });
+                localStorage.setItem('tabelaBackup', JSON.stringify(dadosAtualizados));
+                
+                modalEdicao.style.display = 'none';
+                mostrarAlerta('Linha atualizada com sucesso!');
+                
+                // Resetar seleção
+                linhaSelecionada.classList.remove('selecionada');
+                linhaSelecionada = null;
+                btnAlterar.disabled = true;
+            });
+
+            // Função para mostrar alertas
+            function mostrarAlerta(mensagem) {
+                const alerta = document.getElementById('alerta');
+                if (!alerta) return;
+                
+                alerta.innerText = mensagem;
+                alerta.style.display = 'block';
+                setTimeout(() => {
+                    alerta.style.display = 'none';
+                }, 3000);
+            }
         });
-      });
-    }
 
-    // Prevenir interações
-    tabela.addEventListener('click', (e) => {
-      e.stopPropagation();
-      alert("🔒 A tabela é somente para visualização.");
-    });
-  });
-</script>
-
-
-
-
-<!-- Proteções do lado cliente -->
-<script>
-  // Bloqueia fechamento acidental da aba
-  window.addEventListener("beforeunload", function (e) {
-    e.preventDefault();
-    e.returnValue = "";
-  });
-
-  // Impede múltiplos envios de formulário
-  let formulario = document.querySelector("form");
-  if (formulario) {
-    let enviado = false;
-    formulario.addEventListener("submit", function (e) {
-      if (enviado) {
-        e.preventDefault();
-        alert("⚠️ Formulário já enviado. Aguarde.");
-      } else {
-        enviado = true;
-      }
-    });
-  }
-
-  // Protege localStorage contra estouro
-  function salvarLocalmente(chave, valor) {
-    try {
-      localStorage.setItem(chave, JSON.stringify(valor));
-    } catch (e) {
-      alert("⚠️ Espaço de armazenamento local insuficiente.");
-    }
-  }
-
-  // Validação básica de exemplo
-  function validarEmail(campoId) {
-    const email = document.getElementById(campoId)?.value;
-    if (email && !email.includes("@")) {
-      alert("E-mail inválido.");
-      return false;
-    }
-    return true;
-  }
-
-  // Detecta ferramentas de desenvolvedor abertas (básico)
-  setInterval(() => {
-    if (window.outerWidth - window.innerWidth > 160) {
-      console.warn("🔒 DevTools pode estar aberto.");
-    }
-  }, 3000);
-</script>
-
+        function limparDadosTabela() {
+            if (confirm('Deseja realmente apagar todos os dados da tabela?\nEsta ação não pode ser desfeita.')) {
+                localStorage.removeItem('tabelaBackup');
+                document.querySelector('.tabela tbody').innerHTML = '';
+                const alerta = document.getElementById('alerta');
+                if (alerta) {
+                    alerta.innerText = 'Dados da tabela limpos com sucesso';
+                    alerta.style.display = 'block';
+                    setTimeout(() => {
+                        alerta.style.display = 'none';
+                    }, 3000);
+                }
+            }
+        }
+    </script>
 
     <div style="text-align: center; margin-top: 20px;">
         <button onclick="limparDadosTabela()" style="padding: 10px 20px; font-size: 16px; cursor: pointer;">
             🗑️ Limpar Dados da Tabela
         </button>
     </div>
-
 </body>
 </html>
