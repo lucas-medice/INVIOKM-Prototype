@@ -1,96 +1,105 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <!-- ... (cabeçalho mantido igual) ... -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>INVIOKM - Tabela</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Aldrich&family=IBM+Plex+Mono&family=IBM+Plex+Sans&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="script.js" defer></script>
+    <link rel="shortcut icon" href="assets/favicon_io/favicon.ico" type="image/x-icon">
     <style>
         .modal-overlay, .form-group, .form-buttons, #btnSaida, #btnChegada {
             display: none !important;
         }
-        .tabela tbody tr {
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
         .tabela tbody tr:hover {
-            background-color: #e0e0e0 !important;
-        }
-        .tabela tbody tr.selecionada {
-            background-color: #c8e6c9 !important;
-            box-shadow: inset 0 0 0 2px #4CAF50;
+            cursor: default;
         }
     </style>
 </head>
 
 <body>
-    <!-- ... (header e estrutura principal mantidos iguais) ... -->
+    <header>
+        <nav>
+            <div class="logo-nav">
+                <img src="assets/logo-inviolavel-removebg-preview.png" alt="Logo">
+            </div>
+            <div class="data" id="data"><p></p></div>
+        </nav>
+    </header>
+
+    <main>
+        <div class="box">
+
+            <!-- Botão de exportação -->
+            <div class="botoes">
+                <button id="btnExportar">📤 Exportar para Excel</button>
+            </div>
+
+            <!-- Tabela -->
+            <table class="tabela">
+                <thead>
+                    <tr>
+                        <th>Atendente</th>
+                        <th>Móvel</th>
+                        <th>Destinos</th>
+                        <th>KM de saída</th>
+                        <th>Horário de saída</th>
+                        <th>KM de chegada</th>
+                        <th>Horário de chegada</th>
+                        <th>OBS</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+
+        </div>
+    </main>
+
+    <footer></footer>
 
     <script>
         document.addEventListener("DOMContentLoaded", () => {
-            // Elementos da interface
             const btnExportar = document.getElementById('btnExportar');
-            const btnEditar = document.getElementById('btnEditar');
-            const tabela = document.querySelector('.tabela tbody');
-            const modalEdicao = document.getElementById('modal-edicao');
-            const formEdicao = document.getElementById('form-edicao');
-            const cancelarEdicao = document.getElementById('cancelar-edicao');
-            const alerta = document.getElementById('alerta');
-
-            let linhaSelecionada = null;
-
-            // Carregar dados
-            const dados = JSON.parse(localStorage.getItem('tabelaBackup')) || [];
-            dados.forEach(row => {
-                const novaLinha = tabela.insertRow();
-                for (let i = 0; i < 8; i++) {
-                    const celula = novaLinha.insertCell();
-                    celula.innerText = row[i] || '';
-                }
-                
-                // Adiciona evento de clique diretamente na linha
-                novaLinha.addEventListener('click', function() {
-                    // Remove seleção anterior
-                    if (linhaSelecionada) {
-                        linhaSelecionada.classList.remove('selecionada');
-                    }
-                    
-                    // Adiciona seleção nova
-                    this.classList.add('selecionada');
-                    linhaSelecionada = this;
-                    
-                    // Atualiza o botão de edição
-                    btnEditar.disabled = false;
-                });
-            });
-
-            // Desabilita o botão de edição inicialmente
-            btnEditar.disabled = true;
-
-            // Exportar para Excel
             btnExportar.addEventListener('click', () => {
                 const tabelaDOM = document.querySelector('.tabela');
                 const wb = XLSX.utils.table_to_book(tabelaDOM, { sheet: "Ocorrencias" });
                 XLSX.writeFile(wb, 'ocorrencias.xlsx');
             });
 
-            // Botão Editar
-            btnEditar.addEventListener('click', () => {
-                if (!linhaSelecionada) {
-                    mostrarAlerta('⚠️ Selecione uma linha para editar');
-                    return;
+            const tabela = document.querySelector('.tabela tbody');
+            const dados = JSON.parse(localStorage.getItem('tabelaBackup')) || [];
+            
+            dados.forEach(row => {
+                const novaLinha = tabela.insertRow();
+                // Preenche com dados existentes + coluna móvel vazia se necessário
+                for (let i = 0; i < 8; i++) {
+                    const celula = novaLinha.insertCell();
+                    celula.innerText = row[i] || '';
                 }
-                
-                // Preencher modal com dados da linha
-                document.getElementById('editar-atendente').value = linhaSelecionada.cells[0].innerText;
-                document.getElementById('editar-movel').value = linhaSelecionada.cells[1].innerText;
-                document.getElementById('editar-destinos').value = linhaSelecionada.cells[2].innerText;
-                document.getElementById('editar-kmSaida').value = linhaSelecionada.cells[3].innerText;
-                document.getElementById('editar-kmChegada').value = linhaSelecionada.cells[5].innerText;
-                document.getElementById('editar-obs').value = linhaSelecionada.cells[7].innerText;
-                
-                modalEdicao.style.display = 'flex';
             });
 
-            // ... (restante do código mantido igual) ...
+            tabela.addEventListener('click', (e) => {
+                e.stopPropagation();
+                alert("🔒 A tabela é somente para visualização.");
+            });
         });
+
+        function limparDadosTabela() {
+            if (confirm('Deseja realmente apagar todos os dados da tabela?')) {
+                localStorage.clear();
+                location.reload();
+            }
+        }
     </script>
+
+    <div style="text-align: center; margin-top: 20px;">
+        <button onclick="limparDadosTabela()" style="padding: 10px 20px; font-size: 16px; cursor: pointer;">
+            🗑️ Limpar Dados da Tabela
+        </button>
+    </div>
 </body>
 </html>
