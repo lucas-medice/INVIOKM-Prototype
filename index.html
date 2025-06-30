@@ -73,6 +73,13 @@
               <label for="kmSaida">KM de Saída:</label>
               <input type="number" id="kmSaida" />
             </div>
+            <div class="form-group">
+              <label for="tecnicoToggle">Saída de Técnicos:</label>
+              <label class="switch">
+                <input type="checkbox" id="tecnicoToggle">
+                <span class="slider round"></span>
+              </label>
+            </div>
             <div class="form-group chegada-only">
               <label for="kmChegada">KM de Chegada:</label>
               <input type="number" id="kmChegada" />
@@ -98,13 +105,11 @@
   <footer></footer>
 
 <script>
-  // Bloqueia fechamento acidental da aba
   window.addEventListener("beforeunload", function (e) {
     e.preventDefault();
     e.returnValue = "";
   });
 
-  // Impede múltiplos envios de formulário
   let formulario = document.querySelector("form");
   if (formulario) {
     let enviado = false;
@@ -118,7 +123,6 @@
     });
   }
 
-  // Protege localStorage contra estouro
   function salvarLocalmente(chave, valor) {
     try {
       localStorage.setItem(chave, JSON.stringify(valor));

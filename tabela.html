@@ -11,7 +11,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link rel="shortcut icon" href="assets/favicon_io/favicon.ico" type="image/x-icon">
     <style>
-        /* Estilos otimizados */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -29,25 +28,21 @@
             display: none !important;
         }
         
-        /* Estilo para linhas da tabela */
         .tabela tbody tr {
             cursor: pointer;
             transition: all 0.2s ease;
             position: relative;
         }
         
-        /* Efeito hover suave */
         .tabela tbody tr:not(.selecionada):hover {
             background-color: #f0f0f0 !important;
         }
         
-        /* Estilo para linha selecionada */
         .tabela tbody tr.selecionada {
             background-color: #e1f5fe !important;
             box-shadow: 0 0 0 2px #0288d1;
         }
         
-        /* Botão Alterar estilizado */
         #btnAlterar {
             background: linear-gradient(135deg, #0288d1, #02669d);
             color: white;
@@ -71,7 +66,6 @@
             cursor: not-allowed;
         }
         
-        /* Modal de edição */
         .modal-edicao {
             background-color: #fff;
             padding: 30px;
@@ -121,6 +115,11 @@
             background-color: #f44336;
             color: white;
             border: none;
+        }
+
+        .tabela tbody tr.tecnico td {
+            color: red;
+            font-weight: bold;
         }
     </style>
 </head>
@@ -204,7 +203,6 @@
 
     <script>
         document.addEventListener("DOMContentLoaded", () => {
-            // Elementos da interface
             const btnExportar = document.getElementById('btnExportar');
             const btnAlterar = document.getElementById('btnAlterar');
             const tabela = document.querySelector('.tabela tbody');
@@ -214,7 +212,6 @@
             
             let linhaSelecionada = null;
 
-            // Carregar dados
             const dados = JSON.parse(localStorage.getItem('tabelaBackup')) || [];
             dados.forEach(row => {
                 const novaLinha = tabela.insertRow();
@@ -222,40 +219,55 @@
                     const celula = novaLinha.insertCell();
                     celula.innerText = row[i] || '';
                 }
+                if (row.length > 8 && row[8] === 'Técnico') {
+                    novaLinha.classList.add('tecnico');
+                }
             });
 
-            // Selecionar linha
             tabela.addEventListener('click', (e) => {
                 const linha = e.target.closest('tr');
                 if (!linha) return;
                 
-                // Desselecionar todas as linhas
                 document.querySelectorAll('.tabela tbody tr').forEach(tr => {
                     tr.classList.remove('selecionada');
                 });
                 
-                // Selecionar nova linha
                 linha.classList.add('selecionada');
                 linhaSelecionada = linha;
                 btnAlterar.disabled = false;
             });
 
-            // Exportar para Excel
             btnExportar.addEventListener('click', () => {
                 const tabelaDOM = document.querySelector('.tabela');
-                const wb = XLSX.utils.table_to_book(tabelaDOM, { sheet: "Ocorrencias" });
+                const wb = XLSX.utils.book_new();
+                const ws_data = XLSX.utils.table_to_sheet(tabelaDOM);
+                
+                let rowIndex = 1;
+                dados.forEach(row => {
+                    if (row.length > 8 && row[8] === 'Técnico') {
+                        for (let col = 0; col < 8; col++) {
+                            const cell_ref = XLSX.utils.encode_cell({r: rowIndex, c: col});
+                            if (!ws_data[cell_ref]) continue;
+                            
+                            ws_data[cell_ref].s = {
+                                font: { color: { rgb: "FFFF0000" }, bold: true }
+                            };
+                        }
+                    }
+                    rowIndex++;
+                });
+                
+                XLSX.utils.book_append_sheet(wb, ws_data, "Ocorrencias");
                 XLSX.writeFile(wb, 'ocorrencias.xlsx');
                 mostrarAlerta('Planilha exportada com sucesso!');
             });
 
-            // Botão Alterar - CORREÇÃO PRINCIPAL AQUI
             btnAlterar.addEventListener('click', () => {
                 if (!linhaSelecionada) {
                     mostrarAlerta('Selecione uma linha para editar');
                     return;
                 }
                 
-                // Preencher modal com dados da linha
                 document.getElementById('editar-atendente').value = linhaSelecionada.cells[0].innerText;
                 document.getElementById('editar-movel').value = linhaSelecionada.cells[1].innerText;
                 document.getElementById('editar-destinos').value = linhaSelecionada.cells[2].innerText;
@@ -263,16 +275,13 @@
                 document.getElementById('editar-kmChegada').value = linhaSelecionada.cells[5].innerText;
                 document.getElementById('editar-obs').value = linhaSelecionada.cells[7].innerText;
                 
-                // CORREÇÃO: Mostrar o modal corretamente
                 modalEdicao.style.display = 'flex';
             });
 
-            // Cancelar edição
             cancelarEdicao.addEventListener('click', () => {
                 modalEdicao.style.display = 'none';
             });
 
-            // Salvar edição
             formEdicao.addEventListener('submit', (e) => {
                 e.preventDefault();
                 
@@ -284,7 +293,6 @@
                     return;
                 }
 
-                // Atualizar linha
                 linhaSelecionada.cells[0].innerText = document.getElementById('editar-atendente').value;
                 linhaSelecionada.cells[1].innerText = document.getElementById('editar-movel').value;
                 linhaSelecionada.cells[2].innerText = document.getElementById('editar-destinos').value;
@@ -292,13 +300,13 @@
                 linhaSelecionada.cells[5].innerText = kmChegada > 0 ? kmChegada : '';
                 linhaSelecionada.cells[7].innerText = document.getElementById('editar-obs').value;
                 
-                // Atualizar localStorage
                 const dadosAtualizados = [];
                 document.querySelectorAll('.tabela tbody tr').forEach(linha => {
                     const row = [];
                     for (let i = 0; i < 8; i++) {
                         row.push(linha.cells[i].innerText);
                     }
+                    row.push(linha.classList.contains('tecnico') ? 'Técnico' : '');
                     dadosAtualizados.push(row);
                 });
                 localStorage.setItem('tabelaBackup', JSON.stringify(dadosAtualizados));
@@ -306,13 +314,11 @@
                 modalEdicao.style.display = 'none';
                 mostrarAlerta('Linha atualizada com sucesso!');
                 
-                // Resetar seleção
                 linhaSelecionada.classList.remove('selecionada');
                 linhaSelecionada = null;
                 btnAlterar.disabled = true;
             });
 
-            // Função para mostrar alertas
             function mostrarAlerta(mensagem) {
                 const alerta = document.getElementById('alerta');
                 if (!alerta) return;

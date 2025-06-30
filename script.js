@@ -32,6 +32,7 @@ const destinosInput = document.getElementById('destinos');
 const kmSaidaInput = document.getElementById('kmSaida');
 const kmChegadaInput = document.getElementById('kmChegada');
 const obsInput = document.getElementById('obs');
+const tecnicoToggle = document.getElementById('tecnicoToggle');
 
 let modo = '';
 let linhaSelecionada = null;
@@ -54,8 +55,9 @@ function abrirModal(tipo, linha = null) {
 
   if (tipo === 'saida') {
     modalTitle.innerText = 'Registrar Saída';
-    mostrarCampos(['atendente', 'movel', 'destinos', 'kmSaida']);
+    mostrarCampos(['atendente', 'movel', 'destinos', 'kmSaida', 'tecnicoToggle']);
     ocultarCampos(['kmChegada', 'obs']);
+    tecnicoToggle.checked = false;
     
     movelInput.removeEventListener('change', preencherKmAutomatico);
     movelInput.addEventListener('change', preencherKmAutomatico);
@@ -69,9 +71,8 @@ function abrirModal(tipo, linha = null) {
     }
     modalTitle.innerText = 'Fechar Ocorrência';
     mostrarCampos(['kmChegada', 'obs']);
-    ocultarCampos(['atendente', 'movel', 'destinos', 'kmSaida']);
+    ocultarCampos(['atendente', 'movel', 'destinos', 'kmSaida', 'tecnicoToggle']);
     
-    // Preenche com os valores atuais
     kmChegadaInput.value = linha.cells[5].innerText || '';
     obsInput.value = linha.cells[7].innerText || linha.getAttribute('data-observacao') || '';
   }
@@ -87,16 +88,16 @@ function abrirModal(tipo, linha = null) {
     const celula = linha.celula;
     const textoAtual = celula.innerText;
     
-    if (coluna === 2) { // Editar Destinos
+    if (coluna === 2) {
       modalTitle.innerText = 'Editar Destinos';
       mostrarCampos(['destinos']);
-      ocultarCampos(['atendente', 'movel', 'kmSaida', 'kmChegada', 'obs']);
+      ocultarCampos(['atendente', 'movel', 'kmSaida', 'kmChegada', 'obs', 'tecnicoToggle']);
       destinosInput.value = textoAtual;
     } 
-    else if (coluna === 7) { // Editar Observações
+    else if (coluna === 7) {
       modalTitle.innerText = 'Editar Observações';
       mostrarCampos(['obs']);
-      ocultarCampos(['atendente', 'movel', 'destinos', 'kmSaida', 'kmChegada']);
+      ocultarCampos(['atendente', 'movel', 'destinos', 'kmSaida', 'kmChegada', 'tecnicoToggle']);
       obsInput.value = textoAtual || linhaSelecionada.getAttribute('data-observacao') || '';
     }
   }
@@ -109,11 +110,21 @@ function fecharModal() {
 }
 
 function mostrarCampos(campos) {
-  campos.forEach(id => document.getElementById(id).parentElement.style.display = 'block');
+  campos.forEach(id => {
+    const element = document.getElementById(id);
+    if (element) {
+      element.parentElement.style.display = 'block';
+    }
+  });
 }
 
 function ocultarCampos(campos) {
-  campos.forEach(id => document.getElementById(id).parentElement.style.display = 'none');
+  campos.forEach(id => {
+    const element = document.getElementById(id);
+    if (element) {
+      element.parentElement.style.display = 'none';
+    }
+  });
 }
 
 if (btnSaida) {
@@ -135,6 +146,11 @@ form.addEventListener('submit', (e) => {
   if (modo === 'saida') {
     const novaLinha = tabela.insertRow();
     const movel = movelInput.value.trim();
+    const isTecnico = tecnicoToggle.checked;
+    
+    if (isTecnico) {
+      novaLinha.classList.add('tecnico');
+    }
     
     novaLinha.insertCell(0).innerText = atendenteInput.value;
     novaLinha.insertCell(1).innerText = movel;
@@ -170,6 +186,13 @@ form.addEventListener('submit', (e) => {
     const novaOcorrencia = [];
     for (let i = 0; i < 8; i++) {
       novaOcorrencia.push(linhaSelecionada.cells[i].innerText);
+    }
+
+    // Adiciona informação de técnico
+    if (linhaSelecionada.classList.contains('tecnico')) {
+      novaOcorrencia.push('Técnico');
+    } else {
+      novaOcorrencia.push('');
     }
 
     const ocorrenciasAntigas = JSON.parse(localStorage.getItem('tabelaBackup')) || [];
@@ -230,6 +253,8 @@ function salvarDadosPainel() {
     for (let cell of linha.cells) {
       row.push(cell.innerText);
     }
+    // Adiciona informação de técnico
+    row.push(linha.classList.contains('tecnico') ? 'Técnico' : '');
     dados.push(row);
   }
   localStorage.setItem('tabelaKM', JSON.stringify(dados));
@@ -247,6 +272,10 @@ function carregarDados() {
       for (let i = 0; i < 8; i++) {
         const celula = novaLinha.insertCell();
         celula.innerText = row[i] || '';
+      }
+      // Verifica se é técnico (nona posição)
+      if (row.length > 8 && row[8] === 'Técnico') {
+        novaLinha.classList.add('tecnico');
       }
       aplicarTooltips(novaLinha);
     });
