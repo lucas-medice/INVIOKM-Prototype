@@ -102,7 +102,20 @@
     </div>
   </main>
 
-  <footer></footer>
+   <footer>
+    <div class="footer-compact">
+      <div class="storage-indicator">
+        <div class="storage-bar">
+          <div class="storage-fill" id="storage-fill"></div>
+        </div>
+        <span id="storage-text">0% usado</span>
+      </div>
+      <button id="tutorial-btn" class="tutorial-button">
+        <span>?</span> Tutorial
+      </button>
+    </div>
+  </footer>
+
 
 <script>
   window.addEventListener("beforeunload", function (e) {
@@ -130,6 +143,50 @@
       alert("⚠️ Espaço de armazenamento local insuficiente.");
     }
   }
+      // Atualizar indicador de armazenamento
+    function updateStorageIndicator() {
+      try {
+        // Calcular uso do localStorage
+        const totalSpace = 5 * 1024 * 1024; // 5MB
+        let usedSpace = 0;
+        
+        for (let key in localStorage) {
+          if (localStorage.hasOwnProperty(key)) {
+            usedSpace += localStorage[key].length * 2; // Cada caractere = 2 bytes
+          }
+        }
+        
+        const percentage = Math.round((usedSpace / totalSpace) * 100);
+        const fillElement = document.getElementById('storage-fill');
+        const textElement = document.getElementById('storage-text');
+        
+        if (fillElement && textElement) {
+          fillElement.style.width = `${percentage}%`;
+          textElement.textContent = `${percentage}% usado`;
+          
+          // Mudar cor conforme o uso
+          if (percentage > 90) {
+            fillElement.style.backgroundColor = '#f44336';
+          } else if (percentage > 70) {
+            fillElement.style.backgroundColor = '#ff9800';
+          } else {
+            fillElement.style.backgroundColor = '#4caf50';
+          }
+        }
+      } catch (e) {
+        console.error("Erro ao calcular armazenamento:", e);
+      }
+    }
+
+    // Atualizar a cada 30 segundos
+    setInterval(updateStorageIndicator, 30000);
+    updateStorageIndicator();
+
+    // Abrir tutorial
+    document.getElementById('tutorial-btn')?.addEventListener('click', function() {
+      window.open('tutorial.html', '_blank', 'width=800,height=600');
+    });
+
 </script>
 
 </body>

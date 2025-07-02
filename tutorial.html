@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tutorial INVIOKM</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'IBM Plex Sans', sans-serif;
+    }
+    
+    body {
+      background: #121212;
+      color: #e0e0e0;
+      line-height: 1.6;
+      padding: 20px;
+    }
+    
+    .tutorial-container {
+      max-width: 700px;
+      margin: 40px auto;
+      background: #1e1e1e;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 0 30px rgba(0,0,0,0.7);
+    }
+    
+    .tutorial-header {
+      background: #f44336;
+      padding: 25px;
+      text-align: center;
+      border-bottom: 3px solid #b71c1c;
+    }
+    
+    .tutorial-header h1 {
+      font-family: 'Aldrich', sans-serif;
+      font-size: 2rem;
+      margin-bottom: 10px;
+      color: white;
+    }
+    
+    .tutorial-content {
+      padding: 30px;
+    }
+    
+    .step {
+      margin-bottom: 30px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #333;
+    }
+    
+    .step:last-child {
+      border-bottom: none;
+    }
+    
+    .step-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 15px;
+      color: #f44336;
+      font-size: 1.3rem;
+    }
+    
+    .step-number {
+      background: #f44336;
+      color: white;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+    }
+    
+    .step-content {
+      padding-left: 40px;
+    }
+    
+    .step-content p {
+      margin-bottom: 15px;
+    }
+    
+    .warning {
+      background: rgba(244, 67, 54, 0.15);
+      border-left: 4px solid #f44336;
+      padding: 15px;
+      margin: 15px 0;
+      border-radius: 0 4px 4px 0;
+    }
+    
+    .warning-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+      color: #f44336;
+      font-weight: bold;
+    }
+    
+    .tip {
+      background: rgba(33, 150, 243, 0.15);
+      border-left: 4px solid #2196f3;
+      padding: 15px;
+      margin: 15px 0;
+      border-radius: 0 4px 4px 0;
+    }
+    
+    .tip-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+      color: #2196f3;
+      font-weight: bold;
+    }
+    
+    ul {
+      padding-left: 20px;
+      margin: 15px 0;
+    }
+    
+    li {
+      margin-bottom: 10px;
+      position: relative;
+      padding-left: 25px;
+    }
+    
+    li:before {
+      content: "•";
+      color: #f44336;
+      position: absolute;
+      left: 0;
+      font-size: 1.5rem;
+      line-height: 1;
+    }
+    
+    .btn-close {
+      display: block;
+      width: 200px;
+      margin: 20px auto 0;
+      padding: 12px;
+      background: #f44336;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-size: 1.1rem;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.3s;
+    }
+    
+    .btn-close:hover {
+      background: #d32f2f;
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(244, 67, 54, 0.4);
+    }
+  </style>
+</head>
+<body>
+  <div class="tutorial-container">
+    <div class="tutorial-header">
+      <h1>Tutorial do INVIOKM</h1>
+      <p>Guia rápido para uso correto e prevenção de erros</p>
+    </div>
+    
+    <div class="tutorial-content">
+      <div class="step">
+        <div class="step-title">
+          <div class="step-number">1</div>
+          <h2>Registrar Saída de Veículo</h2>
+        </div>
+        <div class="step-content">
+          <p>Para registrar a saída de um veículo:</p>
+          <ol>
+            <li>Clique em <strong>"➕ Registrar Saída"</strong></li>
+            <li>Preencha todos os campos obrigatórios</li>
+            <li>Registre o KM de saída com atenção.</li>
+            <li>Se forem técnicos ou saídas com os CARROS da organização, ative o botão <strong>SAÍDA DE TÉCNICOS</strong></li>
+          </ol>
+          
+          <div class="warning">
+            <div class="warning-title">
+              <span>⚠️</span>
+              <h3>Cuidados Importantes</h3>
+            </div>
+            <ul>
+              <li><strong>NÃO</strong> apague os dados do navegador, e evite ficar fechando. Se for reiniciar o SIM, salve a planilha de excel antes de reiniciar.</li>
+              <li><strong>NÃO</strong> apague as saídas do painel antes que as ocorrências tenham sido fechadas.</li>
+              <li>Verifique o número do móvel, não pode ser editado depois... Se errar, terá que apagar e registrar a saída novamente.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      
+      <div class="step">
+        <div class="step-title">
+          <div class="step-number">2</div>
+          <h2>Fechar Ocorrência</h2>
+        </div>
+        <div class="step-content">
+          <p>Quando o veículo retornar:</p>
+          <ol>
+            <li>Clique em <strong>"🔒 Fechar Ocorrência"</strong></li>
+            <li>Selecione a linha correspondente na tabela</li>
+            <li>Preencha o KM de chegada</li>
+            <li>Adicione observações se necessário</li>
+            <li>Clique em Confirmar</li>
+          </ol>
+          
+          <div class="warning">
+            <div class="warning-title">
+              <span>🚨</span>
+              <h3>Prevenção de Erros</h3>
+            </div>
+            <ul>
+              <li>Preste atenção ao escrever o KM de chegada, pois ele será o parâmetro automático para as próximas, se estiver errado, pode haver incoerências.</li>
+              <li>O horário registrado e puxado automaticamente do sistema, se for necessário fazer alterações... Anote na observação e corrija na planilha final antes de fechar o plantão</li>
+              <li>Ao <strong>fechar as ocorrências</strong>, você poderá apagá-la do painel para melhor visualização.</li>
+              <li>Esta ação é irreversível - confira os dados antes de confirmar</li>
+            </ul>
+          </div>
+          
+          <div class="tip">
+            <div class="tip-title">
+              <span>💡</span>
+              <h3>Dica Rápida</h3>
+            </div>
+            <p>Para editar ou adicionar destinos ou observações, clique diretamente na célula correspondente na tabela.</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="step">
+        <div class="step-title">
+          <div class="step-number">3</div>
+          <h2>Gerenciamento de Dados</h2>
+        </div>
+        <div class="step-content">
+          <p>Principais recursos:</p>
+          <ol>
+            <li><strong>Ver Tabela Completa:</strong> Todos as saídas registradas no plantão</li>
+            <li><strong>Exportar Excel:</strong> Exporta a tabela para uma planilha de excel</li>
+            <li><strong>Alterar Linha:</strong> Editar erros e incongruências nos registros</li>
+            <li><strong>Limpar Dados:</strong> Limpa todos os dados do navegador <strong>[USE APENAS QUANDO MUDAR O PLANTÃO OU QUANDO O ARMAZENAMENTO ESTIVER CHEIO]</strong></li>
+          </ol>
+          
+          <div class="warning">
+            <div class="warning-title">
+              <span>🔥</span>
+              <h3>Armazenamento Local</h3>
+            </div>
+            <ul>
+              <li>Seus dados são salvos APENAS neste navegador</li>
+              <li>Exporte sempre que for mudar o plantão para registrar tudo e evitar perda de dados</li>
+              <li>Atenção ao armazenamento (barra colorida)</li>
+              <li>Limpeza total apaga TODOS os dados permanentemente</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      
+      <button class="btn-close" onclick="window.close()">Fechar Tutorial</button>
+    </div>
+  </div>
+</body>
+</html>
