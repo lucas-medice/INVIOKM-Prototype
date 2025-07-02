@@ -258,6 +258,10 @@ function salvarDadosPainel() {
     dados.push(row);
   }
   localStorage.setItem('tabelaKM', JSON.stringify(dados));
+  
+  // Adicionar nome do plantão ao salvar
+  const plantao = localStorage.getItem('plantao') || '';
+  localStorage.setItem('plantaoAtual', plantao);
 }
 
 function carregarDados() {

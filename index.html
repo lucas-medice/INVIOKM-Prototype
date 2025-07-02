@@ -1,25 +1,40 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>INVIOKM - Painel</title>
-  <link rel="stylesheet" href="style.css"/>
-  <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-  <link href="https://fonts.googleapis.com/css2?family=Aldrich&family=IBM+Plex+Mono&family=IBM+Plex+Sans&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Aldrich&family=IBM+Plex+Mono&family=IBM+Plex+Sans&display=swap"
+    rel="stylesheet" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="script.js" defer></script>
   <link rel="shortcut icon" href="assets/favicon_io/favicon.ico" type="image/x-icon">
 </head>
 
 <body>
+  <!-- Verificar se está logado -->
+  <script>
+    if (!localStorage.getItem('plantao')) {
+      window.location.href = 'login.html';
+    }
+  </script>
+
   <header>
     <nav>
+      <div class="user-info">
+        <span id="plantao-info"></span>
+        <button id="btnLogout">Logout</button>
+      </div>
       <div class="logo-nav">
         <img src="assets/logo-inviolavel-removebg-preview-1.png" alt="Logo" />
       </div>
-      <div class="data" id="data"><p></p></div>
+      <div class="data" id="data">
+        <p></p>
+      </div>
     </nav>
   </header>
 
@@ -102,68 +117,75 @@
     </div>
   </main>
 
-   <footer>
+  <footer>
     <div class="footer-compact">
+      <button id="tutorial-btn" class="tutorial-button">
+        <span>?</span> Tutorial
+      </button>
+
       <div class="storage-indicator">
         <div class="storage-bar">
           <div class="storage-fill" id="storage-fill"></div>
         </div>
         <span id="storage-text">0% usado</span>
       </div>
-      <button id="tutorial-btn" class="tutorial-button">
-        <span>?</span> Tutorial
-      </button>
+
+      <div class="version-info">
+        INVIOKM Beta v1.5.5 • desenvolvido por Lucas Medice
+        <a href="https://www.linkedin.com/in/lucas-medice" target="_blank">
+          <img src="assets/linkedin-logo.png" alt="LinkedIn" class="linkedin-logo">
+        </a>
+      </div>
     </div>
   </footer>
 
-
-<script>
-  window.addEventListener("beforeunload", function (e) {
-    e.preventDefault();
-    e.returnValue = "";
-  });
-
-  let formulario = document.querySelector("form");
-  if (formulario) {
-    let enviado = false;
-    formulario.addEventListener("submit", function (e) {
-      if (enviado) {
-        e.preventDefault();
-        alert("⚠️ Formulário já enviado. Aguarde.");
-      } else {
-        enviado = true;
-      }
+  <script>
+    window.addEventListener("beforeunload", function (e) {
+      e.preventDefault();
+      e.returnValue = "";
     });
-  }
 
-  function salvarLocalmente(chave, valor) {
-    try {
-      localStorage.setItem(chave, JSON.stringify(valor));
-    } catch (e) {
-      alert("⚠️ Espaço de armazenamento local insuficiente.");
+    let formulario = document.querySelector("form");
+    if (formulario) {
+      let enviado = false;
+      formulario.addEventListener("submit", function (e) {
+        if (enviado) {
+          e.preventDefault();
+          alert("⚠️ Formulário já enviado. Aguarde.");
+        } else {
+          enviado = true;
+        }
+      });
     }
-  }
-      // Atualizar indicador de armazenamento
+
+    function salvarLocalmente(chave, valor) {
+      try {
+        localStorage.setItem(chave, JSON.stringify(valor));
+      } catch (e) {
+        alert("⚠️ Espaço de armazenamento local insuficiente.");
+      }
+    }
+    // Atualizar indicador de armazenamento
     function updateStorageIndicator() {
       try {
         // Calcular uso do localStorage
         const totalSpace = 5 * 1024 * 1024; // 5MB
         let usedSpace = 0;
-        
+
         for (let key in localStorage) {
           if (localStorage.hasOwnProperty(key)) {
             usedSpace += localStorage[key].length * 2; // Cada caractere = 2 bytes
           }
         }
-        
+
         const percentage = Math.round((usedSpace / totalSpace) * 100);
         const fillElement = document.getElementById('storage-fill');
         const textElement = document.getElementById('storage-text');
-        
+
         if (fillElement && textElement) {
           fillElement.style.width = `${percentage}%`;
           textElement.textContent = `${percentage}% usado`;
-          
+
           // Mudar cor conforme o uso
           if (percentage > 90) {
             fillElement.style.backgroundColor = '#f44336';
@@ -183,11 +205,24 @@
     updateStorageIndicator();
 
     // Abrir tutorial
-    document.getElementById('tutorial-btn')?.addEventListener('click', function() {
+    document.getElementById('tutorial-btn')?.addEventListener('click', function () {
       window.open('tutorial.html', '_blank', 'width=800,height=600');
     });
 
-</script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const plantao = localStorage.getItem('plantao');
+      if (plantao) {
+        document.getElementById('plantao-info').textContent = `Plantão: ${plantao}`;
+      }
+
+      document.getElementById('btnLogout').addEventListener('click', function () {
+        localStorage.removeItem('plantao');
+        window.location.href = 'login.html';
+      });
+    });
+
+  </script>
 
 </body>
+
 </html>

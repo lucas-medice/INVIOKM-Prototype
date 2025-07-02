@@ -131,8 +131,20 @@
 </head>
 
 <body>
+    <!-- Verificar se está logado -->
+    <script>
+        if (!localStorage.getItem('plantao')) {
+            window.location.href = 'login.html';
+        }
+    </script>
+
     <header>
         <nav>
+            <!-- Adicionei esta div para o plantão logado e logout -->
+            <div class="user-info">
+                <span id="plantao-info"></span>
+                <button id="btnLogout">Logout</button>
+            </div>
             <div class="logo-nav">
                 <img src="assets/logo-inviolavel-removebg-preview-1.png" alt="Logo" />
             </div>
@@ -141,7 +153,6 @@
             </div>
         </nav>
     </header>
-
 
     <main>
         <div class="box">
@@ -212,15 +223,23 @@
 
     <footer>
         <div class="footer-compact">
+            <button id="tutorial-btn" class="tutorial-button">
+                <span>?</span> Tutorial
+            </button>
+
             <div class="storage-indicator">
                 <div class="storage-bar">
                     <div class="storage-fill" id="storage-fill"></div>
                 </div>
                 <span id="storage-text">0% usado</span>
             </div>
-            <button id="tutorial-btn" class="tutorial-button">
-                <span>?</span> Tutorial
-            </button>
+
+            <div class="version-info">
+                INVIOKM Beta v1.5.5 • desenvolvido por Lucas Medice
+                <a href="https://www.linkedin.com/in/lucas-medice" target="_blank">
+                    <img src="assets/linkedin-logo.png" alt="LinkedIn" class="linkedin-logo">
+                </a>
+            </div>
         </div>
     </footer>
 
@@ -281,7 +300,21 @@
                 });
 
                 XLSX.utils.book_append_sheet(wb, ws_data, "Ocorrencias");
-                XLSX.writeFile(wb, 'ocorrencias.xlsx');
+
+                // Obter a data atual no formato DD-MM-AAAA
+                const hoje = new Date();
+                const dia = String(hoje.getDate()).padStart(2, '0');
+                const mes = String(hoje.getMonth() + 1).padStart(2, '0');
+                const ano = hoje.getFullYear();
+                const dataFormatada = `${dia}-${mes}-${ano}`;
+
+                // Obter o nome do plantão do localStorage
+                const plantao = localStorage.getItem('plantao') || 'Plantao';
+
+                // Criar o nome do arquivo: "KM-DD-MM-AAAA PLANTAO1 E PLANTAO2.xlsx"
+                const nomeArquivo = `KM-${dataFormatada} ${plantao}.xlsx`;
+
+                XLSX.writeFile(wb, nomeArquivo);
                 mostrarAlerta('Planilha exportada com sucesso!');
             });
 
@@ -411,6 +444,19 @@
         // Abrir tutorial
         document.getElementById('tutorial-btn')?.addEventListener('click', function () {
             window.open('tutorial.html', '_blank', 'width=800,height=600');
+        });
+
+        // Adicione este script no final do body
+        document.addEventListener('DOMContentLoaded', function () {
+            const plantao = localStorage.getItem('plantao');
+            if (plantao) {
+                document.getElementById('plantao-info').textContent = `Plantão: ${plantao}`;
+            }
+
+            document.getElementById('btnLogout').addEventListener('click', function () {
+                localStorage.removeItem('plantao');
+                window.location.href = 'login.html';
+            });
         });
 
     </script>
