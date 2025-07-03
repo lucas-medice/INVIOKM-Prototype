@@ -1,3 +1,5 @@
+// script.js
+
 function obterDataHora() {
   const agora = new Date();
   const dia = String(agora.getDate()).padStart(2, '0');
@@ -38,8 +40,22 @@ let modo = '';
 let linhaSelecionada = null;
 const historicoMovel = JSON.parse(localStorage.getItem('historicoMovel')) || {};
 
+// Função para formatar número do móvel com 2 dígitos
+function formatarNumeroMovel(numero) {
+  // Remove qualquer caractere não numérico
+  const apenasNumeros = numero.replace(/\D/g, '');
+  
+  // Formata para 2 dígitos, adicionando zero à esquerda se necessário
+  return apenasNumeros.padStart(2, '0');
+}
+
+// Aplicar formatação enquanto digita
+movelInput.addEventListener('input', function() {
+  this.value = formatarNumeroMovel(this.value);
+});
+
 function preencherKmAutomatico() {
-  const movel = movelInput.value.trim();
+  const movel = formatarNumeroMovel(movelInput.value);
   if (movel && historicoMovel[movel]) {
     if (confirm(`Preencher automaticamente o KM de saída com ${historicoMovel[movel]}KM (último registro do móvel ${movel})?`)) {
       kmSaidaInput.value = historicoMovel[movel];
@@ -144,8 +160,8 @@ form.addEventListener('submit', (e) => {
   e.preventDefault();
 
   if (modo === 'saida') {
+    const numeroMovel = formatarNumeroMovel(movelInput.value);
     const novaLinha = tabela.insertRow();
-    const movel = movelInput.value.trim();
     const isTecnico = tecnicoToggle.checked;
     
     if (isTecnico) {
@@ -153,7 +169,7 @@ form.addEventListener('submit', (e) => {
     }
     
     novaLinha.insertCell(0).innerText = atendenteInput.value;
-    novaLinha.insertCell(1).innerText = movel;
+    novaLinha.insertCell(1).innerText = numeroMovel;
     novaLinha.insertCell(2).innerText = destinosInput.value;
     novaLinha.insertCell(3).innerText = kmSaidaInput.value;
     novaLinha.insertCell(4).innerText = obterDataHora();
@@ -167,7 +183,7 @@ form.addEventListener('submit', (e) => {
   if (modo === 'chegada') {
     const kmSaida = parseFloat(linhaSelecionada.cells[3].innerText);
     const kmChegada = parseFloat(kmChegadaInput.value);
-    const movel = linhaSelecionada.cells[1].innerText.trim();
+    const movel = formatarNumeroMovel(linhaSelecionada.cells[1].innerText);
     
     if (isNaN(kmChegada) || kmChegada < kmSaida) {
       mostrarAlerta("❌ O KM de chegada não pode ser menor que o KM de saída.");
@@ -188,7 +204,6 @@ form.addEventListener('submit', (e) => {
       novaOcorrencia.push(linhaSelecionada.cells[i].innerText);
     }
 
-    // Adiciona informação de técnico
     if (linhaSelecionada.classList.contains('tecnico')) {
       novaOcorrencia.push('Técnico');
     } else {
@@ -220,8 +235,16 @@ form.addEventListener('submit', (e) => {
 function aplicarTooltips(linha) {
   linha.cells[2].setAttribute('title', 'Clique para editar destinos');
   linha.cells[7].setAttribute('title', 'Clique para editar observações');
+  
+  // Adicionar tooltip para duplo clique nas outras células
+  for (let i = 0; i < linha.cells.length; i++) {
+    if (i !== 2 && i !== 7) {
+      linha.cells[i].setAttribute('title', 'Duplo clique para apagar');
+    }
+  }
 }
 
+// Evento de clique simples
 tabela.addEventListener('click', function (e) {
   const alvo = e.target;
 
@@ -230,9 +253,19 @@ tabela.addEventListener('click', function (e) {
   const linha = alvo.closest('tr');
   if (!linha) return;
 
+  // Adiciona efeito de pulso
+  linha.classList.add('efeito-clique');
+  setTimeout(() => linha.classList.remove('efeito-clique'), 500);
+
+  // Remove seleção anterior
+  document.querySelectorAll('.tabela tbody tr').forEach(tr => {
+    tr.classList.remove('selecionada');
+  });
+
+  // Adiciona nova seleção
+  linha.classList.add('selecionada');
+
   if (modo === 'fechar') {
-    document.querySelectorAll('.tabela tbody tr').forEach(tr => tr.classList.remove('selecionada'));
-    linha.classList.add('selecionada');
     abrirModal('chegada', linha);
     return;
   }
@@ -240,9 +273,24 @@ tabela.addEventListener('click', function (e) {
   const coluna = alvo.cellIndex;
   if (coluna === 2 || coluna === 7) {
     abrirModal('editar', { celula: alvo, coluna, linha });
-  } else if (confirm("Deseja excluir esta linha?")) {
+  }
+});
+
+// Evento de duplo clique para apagar
+tabela.addEventListener('dblclick', function (e) {
+  const alvo = e.target;
+  
+  if (alvo.tagName !== 'TD') return;
+  
+  const linha = alvo.closest('tr');
+  if (!linha) return;
+  
+  
+  // Confirmação antes de apagar
+  if (confirm('Tem certeza que deseja apagar esta ocorrência?')) {
     linha.remove();
     salvarDadosPainel();
+    mostrarAlerta('Ocorrência removida com sucesso!');
   }
 });
 
@@ -250,16 +298,15 @@ function salvarDadosPainel() {
   const dados = [];
   for (let linha of tabela.rows) {
     const row = [];
-    for (let cell of linha.cells) {
-      row.push(cell.innerText);
+    for (let i = 0; i < linha.cells.length; i++) {
+      // Formatar o número do móvel (célula 1) antes de salvar
+      row.push(i === 1 ? formatarNumeroMovel(linha.cells[i].innerText) : linha.cells[i].innerText);
     }
-    // Adiciona informação de técnico
     row.push(linha.classList.contains('tecnico') ? 'Técnico' : '');
     dados.push(row);
   }
   localStorage.setItem('tabelaKM', JSON.stringify(dados));
   
-  // Adicionar nome do plantão ao salvar
   const plantao = localStorage.getItem('plantao') || '';
   localStorage.setItem('plantaoAtual', plantao);
 }
@@ -275,15 +322,18 @@ function carregarDados() {
       const novaLinha = tabela.insertRow();
       for (let i = 0; i < 8; i++) {
         const celula = novaLinha.insertCell();
-        celula.innerText = row[i] || '';
+        // Formatar o número do móvel (célula 1) se existir
+        celula.innerText = i === 1 && row[i] ? formatarNumeroMovel(row[i]) : (row[i] || '');
       }
-      // Verifica se é técnico (nona posição)
       if (row.length > 8 && row[8] === 'Técnico') {
         novaLinha.classList.add('tecnico');
       }
       aplicarTooltips(novaLinha);
     });
   }
+  
+  // Atualizar tooltips para duplo clique
+  atualizarTooltips();
 }
 carregarDados();
 
@@ -315,3 +365,269 @@ function limparDadosTabela() {
     }
   }
 }
+
+// ========== SISTEMA DE IMPORTACAO/EXPORTACAO ========== //
+
+function exportarDados() {
+  const btn = document.getElementById('btnExportarMini');
+  btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>';
+  btn.disabled = true;
+  
+  const dadosPainel = JSON.parse(localStorage.getItem('tabelaKM') || []);
+  const dadosTabela = JSON.parse(localStorage.getItem('tabelaBackup') || []);
+  const historicoMovel = JSON.parse(localStorage.getItem('historicoMovel') || {});
+  
+  const dadosExportar = {
+    plantao: localStorage.getItem('plantao'),
+    tabelaKM: dadosPainel,
+    tabelaBackup: dadosTabela,
+    historicoMovel: historicoMovel,
+    timestamp: new Date().toISOString()
+  };
+  
+  const blob = new Blob([JSON.stringify(dadosExportar, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `INVIOKM_${localStorage.getItem('plantao')}_${new Date().toISOString().slice(0, 10)}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  
+  setTimeout(() => {
+    btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>';
+    btn.disabled = false;
+    mostrarAlerta('Dados exportados com sucesso!');
+  }, 1000);
+}
+
+function importarDados(jsonData, importMode = 'merge') {
+  const btn = document.getElementById('btnImportarMini');
+  btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>';
+  btn.disabled = true;
+  
+  try {
+    if (importMode === 'overwrite') {
+      // Modo sobrescrever - substitui tudo
+      localStorage.setItem('tabelaKM', JSON.stringify(jsonData.tabelaKM || []));
+      localStorage.setItem('tabelaBackup', JSON.stringify(jsonData.tabelaBackup || []));
+      localStorage.setItem('historicoMovel', JSON.stringify(jsonData.historicoMovel || {}));
+      
+      if (jsonData.plantao) {
+        localStorage.setItem('plantao', jsonData.plantao);
+      }
+    } else {
+      // Modo mesclar (padrão) - combina dados
+      const dadosPainelAtual = JSON.parse(localStorage.getItem('tabelaKM') || '[]');
+      const dadosPainelNovo = jsonData.tabelaKM || [];
+      const dadosPainelCombinados = [...dadosPainelAtual, ...dadosPainelNovo];
+      localStorage.setItem('tabelaKM', JSON.stringify(dadosPainelCombinados));
+      
+      const dadosBackupAtual = JSON.parse(localStorage.getItem('tabelaBackup') || '[]');
+      const dadosBackupNovo = jsonData.tabelaBackup || [];
+      const dadosBackupCombinados = [...dadosBackupAtual, ...dadosBackupNovo];
+      localStorage.setItem('tabelaBackup', JSON.stringify(dadosBackupCombinados));
+      
+      const historicoAtual = JSON.parse(localStorage.getItem('historicoMovel') || '{}');
+      const historicoNovo = jsonData.historicoMovel || {};
+      const historicoCombinado = { ...historicoAtual, ...historicoNovo };
+      localStorage.setItem('historicoMovel', JSON.stringify(historicoCombinado));
+    }
+    
+    setTimeout(() => {
+      btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>';
+      btn.disabled = false;
+      location.reload();
+      mostrarAlerta(`Dados importados com sucesso (Modo: ${importMode === 'overwrite' ? 'Sobrescrita' : 'Mesclagem'})`);
+    }, 1000);
+  } catch (e) {
+    console.error('Erro na importação:', e);
+    btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>';
+    btn.disabled = false;
+    mostrarAlerta('Erro ao importar dados. Verifique o arquivo.');
+  }
+}
+
+// Event Listeners para Importação/Exportação
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('btnExportarMini')?.addEventListener('click', exportarDados);
+  
+  document.getElementById('btnImportarMini')?.addEventListener('click', () => {
+    document.getElementById('fileInput').click();
+  });
+  
+  document.getElementById('fileInput').addEventListener('change', (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const jsonData = JSON.parse(e.target.result);
+        
+        // Mostrar modal de opções de importação
+        const importModal = document.getElementById('importModal');
+        const importOptions = document.querySelectorAll('.import-option');
+        let selectedMode = 'merge';
+        
+        importOptions.forEach(option => {
+          option.addEventListener('click', () => {
+            importOptions.forEach(opt => opt.classList.remove('selected'));
+            option.classList.add('selected');
+            selectedMode = option.dataset.mode;
+            
+            // Fechar modal após 1 segundo e processar importação
+            setTimeout(() => {
+              importModal.style.display = 'none';
+              if (confirm(`Confirmar importação no modo ${selectedMode === 'overwrite' ? 'SOBRESCREVER' : 'MESCLAR'}?`)) {
+                importarDados(jsonData, selectedMode);
+              }
+            }, 300);
+          });
+        });
+        
+        document.getElementById('cancelImport').addEventListener('click', () => {
+          importModal.style.display = 'none';
+          document.getElementById('fileInput').value = '';
+        });
+        
+        importModal.style.display = 'flex';
+        
+      } catch (error) {
+        mostrarAlerta('Arquivo inválido. Use um arquivo JSON exportado do INVIOKM.');
+      }
+    };
+    reader.readAsText(file);
+  });
+});
+
+// ========== ORDENAÇÃO POR HORÁRIO DE SAÍDA ========== //
+
+function ordenarTabelaPorSaida() {
+  const tbody = document.querySelector('.tabela tbody');
+  const linhas = Array.from(tbody.querySelectorAll('tr'));
+  
+  linhas.sort((a, b) => {
+      const saidaA = a.cells[4].innerText;
+      const saidaB = b.cells[4].innerText;
+      
+      // Converter para objetos Date para comparação
+      const dataA = parseDataHora(saidaA);
+      const dataB = parseDataHora(saidaB);
+      
+      return dataA - dataB; // Ordem crescente (mais antigo primeiro)
+  });
+  
+  // Reinserir as linhas ordenadas
+  linhas.forEach(linha => tbody.appendChild(linha));
+}
+
+// Função auxiliar para converter texto em Date
+function parseDataHora(texto) {
+  if (!texto) return new Date(0);
+  
+  try {
+      const [dataParte, horaParte] = texto.split(' - ');
+      const [dia, mes, ano] = dataParte.split('/');
+      const [horas, minutos] = horaParte.split(':');
+      
+      // Ano 20XX (assumindo século 21)
+      const anoCompleto = 2000 + parseInt(ano);
+      
+      return new Date(anoCompleto, mes - 1, dia, horas, minutos);
+  } catch (e) {
+      console.error('Erro ao parsear data:', texto, e);
+      return new Date(0);
+  }
+}
+
+// Event listener para o botão refresh
+document.getElementById('btnRefresh')?.addEventListener('click', () => {
+  ordenarTabelaPorSaida();
+  mostrarAlerta('Tabela atualizada e ordenada por horário de saída');
+});
+
+// Ordenar ao carregar a página
+document.addEventListener('DOMContentLoaded', ordenarTabelaPorSaida);
+
+// Função para atualizar tooltips para duplo clique
+function atualizarTooltips() {
+  document.querySelectorAll('.tabela tbody tr').forEach(linha => {
+    for (let i = 0; i < linha.cells.length; i++) {
+      if (i !== 2 && i !== 7) {
+        linha.cells[i].setAttribute('title', 'Duplo clique para apagar');
+      }
+    }
+  });
+}
+
+// Inicializar tooltips ao carregar
+setTimeout(() => {
+  atualizarTooltips();
+}, 500);
+
+// ========== CONFIGURAÇÕES DE USUÁRIO ========== //
+
+document.addEventListener('DOMContentLoaded', function () {
+  const plantao = localStorage.getItem('plantao');
+  if (plantao) {
+    document.getElementById('plantao-info').textContent = `Plantão: ${plantao}`;
+  }
+
+  document.getElementById('btnLogout')?.addEventListener('click', function () {
+    // Abrir o modal de logout seguro
+    openSecureLogout();
+  });
+  
+  // Botão para voltar ao painel principal na tabela.html
+  document.getElementById('btnVoltar')?.addEventListener('click', function() {
+    window.location.href = 'index.html';
+  });
+});
+
+// ========== INDICADOR DE ARMAZENAMENTO ========== //
+
+function updateStorageIndicator() {
+  try {
+    // Calcular uso do localStorage
+    const totalSpace = 5 * 1024 * 1024; // 5MB
+    let usedSpace = 0;
+
+    for (let key in localStorage) {
+      if (localStorage.hasOwnProperty(key)) {
+        usedSpace += localStorage[key].length * 2; // Cada caractere = 2 bytes
+      }
+    }
+
+    const percentage = Math.round((usedSpace / totalSpace) * 100);
+    const fillElement = document.getElementById('storage-fill');
+    const textElement = document.getElementById('storage-text');
+
+    if (fillElement && textElement) {
+      fillElement.style.width = `${percentage}%`;
+      textElement.textContent = `${percentage}% usado`;
+
+      // Mudar cor conforme o uso
+      if (percentage > 90) {
+        fillElement.style.backgroundColor = '#f44336';
+      } else if (percentage > 70) {
+        fillElement.style.backgroundColor = '#ff9800';
+      } else {
+        fillElement.style.backgroundColor = '#4caf50';
+      }
+    }
+  } catch (e) {
+    console.error("Erro ao calcular armazenamento:", e);
+  }
+}
+
+// Atualizar a cada 30 segundos
+setInterval(updateStorageIndicator, 30000);
+updateStorageIndicator();
+
+// Abrir tutorial
+document.getElementById('tutorial-btn')?.addEventListener('click', function () {
+  window.open('tutorial.html', '_blank', 'width=800,height=600');
+});

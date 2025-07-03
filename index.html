@@ -22,7 +22,6 @@
       window.location.href = 'login.html';
     }
   </script>
-
   <header>
     <nav>
       <div class="user-info">
@@ -37,10 +36,8 @@
       </div>
     </nav>
   </header>
-
   <main>
     <div class="box">
-
       <!-- Botões -->
       <div class="botoes">
         <button id="btnSaida">➕ Registrar Saída</button>
@@ -48,8 +45,8 @@
         <a href="tabela.html" target="_blank">
           <button type="button">📄 Ver Tabela</button>
         </a>
+        <input type="file" id="fileInput" accept=".json" style="display: none;" />
       </div>
-
       <!-- Tabela -->
       <table class="tabela">
         <thead>
@@ -66,7 +63,6 @@
         </thead>
         <tbody></tbody>
       </table>
-
       <!-- Modal -->
       <div class="modal-overlay" id="modal">
         <div class="modal">
@@ -110,41 +106,192 @@
           </form>
         </div>
       </div>
-
+      <div class="modal-overlay" id="importModal" style="display: none;">
+        <div class="modal">
+          <h2>Opções de Importação</h2>
+          <div class="import-options">
+            <div class="import-option" data-mode="overwrite">
+              <h3>🔀 Sobrescrever Tudo</h3>
+              <p>Substitui todos os dados atuais pelos importados</p>
+            </div>
+            <div class="import-option" data-mode="merge">
+              <h3>🔄 Mesclar Dados</h3>
+              <p>Combina os dados importados com os existentes</p>
+            </div>
+          </div>
+          <div class="form-buttons">
+            <button type="button" class="cancel" id="cancelImport">Cancelar</button>
+          </div>
+        </div>
+      </div>
+      <input type="file" id="fileInput" accept=".json" style="display: none;" />
       <!-- Alerta -->
       <div id="alerta" class="alerta" style="display: none;"></div>
-
     </div>
   </main>
-
   <footer>
-    <div class="footer-compact">
-      <button id="tutorial-btn" class="tutorial-button">
-        <span>?</span> Tutorial
-      </button>
-
-      <div class="storage-indicator">
-        <div class="storage-bar">
-          <div class="storage-fill" id="storage-fill"></div>
-        </div>
-        <span id="storage-text">0% usado</span>
+    <div class="footer-container">
+      <div class="footer-left">
+        <button id="tutorial-btn" class="tutorial-button">
+          <span>?</span> Tutorial
+        </button>
       </div>
-
-      <div class="version-info">
-        INVIOKM Beta v1.5.5 • desenvolvido por Lucas Medice
-        <a href="https://www.linkedin.com/in/lucas-medice" target="_blank">
-          <img src="assets/linkedin-logo.png" alt="LinkedIn" class="linkedin-logo">
-        </a>
+      <div class="footer-center">
+        <div class="storage-indicator">
+          <div class="storage-bar">
+            <div class="storage-fill" id="storage-fill"></div>
+          </div>
+          <span id="storage-text">0% usado</span>
+        </div>
+      </div>
+      <div class="footer-right">
+        <div class="version-info">
+          <span>INVIOKM Beta v1.6</span>
+          <span class="developer">desenvolvido por Lucas Medice</span>
+          <a href="https://www.linkedin.com/in/lucas-medice" target="_blank">
+            <img src="assets/linkedin-logo.png" alt="LinkedIn" class="linkedin-logo">
+          </a>
+        </div>
+        <div class="export-buttons">
+          <button id="btnExportarMini" class="circle-btn" title="Exportar dados">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+          </button>
+          <button id="btnImportarMini" class="circle-btn" title="Importar dados">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7"></path>
+              <polyline points="15 3 21 3 21 9"></polyline>
+              <line x1="10" y1="14" x2="21" y2="3"></line>
+            </svg>
+          </button>
+        </div>
       </div>
     </div>
   </footer>
+  <!-- Manter o input file escondido -->
+  <input type="file" id="fileInput" accept=".json" style="display: none;" />
+  <!-- Modal de Logout Seguro -->
+  <div id="logoutModal"
+    style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); z-index: 10000; align-items: center; justify-content: center;">
+    <div class="secure-logout-box"
+      style="background: linear-gradient(135deg, #1a1a1a, #2a2a2a); border-radius: 12px; padding: 30px; width: 90%; max-width: 500px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); border: 2px solid #f44336; text-align: center;">
+      <div class="security-icon"
+        style="font-size: 3rem; margin-bottom: 15px; color: #f44336; text-shadow: 0 0 10px rgba(244, 67, 54, 0.7);">🔒
+      </div>
+      <h2
+        style="color: #f44336; margin-bottom: 20px; font-size: 1.8rem; text-transform: uppercase; letter-spacing: 1px;">
+        LOGOUT SEGURO</h2>
+      <p style="color: #ddd; margin-bottom: 25px; line-height: 1.6;">Para garantir a segurança dos dados, confirme sua
+        identidade antes de sair do sistema. Todos os dados serão permanentemente apagados após o logout. SENHA = BATMAN (TUDO MAIÚSCULO)</p>
 
+      <input type="password" id="logoutPassword" class="password-input" placeholder="Digite a senha de administrador"
+        autocomplete="off"
+        style="width: 100%; padding: 15px; margin-bottom: 20px; border: 2px solid #444; border-radius: 8px; background: #111; color: white; font-size: 1.1rem; text-align: center; letter-spacing: 2px; transition: all 0.3s;">
+      <div id="attemptsMessage" class="attempts-counter" style="color: #ff9800; font-size: 0.9rem; margin-top: 10px;">
+        Tentativas restantes: 3</div>
+
+      <div class="logout-buttons" style="display: flex; gap: 15px; justify-content: center;">
+        <button id="confirmLogout" class="logout-confirm"
+          style="background: linear-gradient(135deg, #f44336, #d32f2f); color: white; border: none; padding: 12px 30px; border-radius: 8px; font-size: 1.1rem; cursor: pointer; transition: all 0.3s; font-weight: bold; letter-spacing: 1px;">CONFIRMAR
+          LOGOUT</button>
+        <button id="cancelLogout" class="logout-cancel"
+          style="background: linear-gradient(135deg, #444, #333); color: white; border: none; padding: 12px 30px; border-radius: 8px; font-size: 1.1rem; cursor: pointer; transition: all 0.3s;">CANCELAR</button>
+      </div>
+    </div>
+  </div>
   <script>
-    window.addEventListener("beforeunload", function (e) {
-      e.preventDefault();
-      e.returnValue = "";
-    });
+    // Senha de administrador
+    const ADMIN_PASSWORD = "BATMAN";
+    let logoutAttempts = 3;
+    // Elementos do modal de logout
+    const logoutModal = document.getElementById('logoutModal');
+    const logoutPassword = document.getElementById('logoutPassword');
+    const confirmLogout = document.getElementById('confirmLogout');
+    const cancelLogout = document.getElementById('cancelLogout');
+    const attemptsMessage = document.getElementById('attemptsMessage');
+    // Função para abrir o modal de logout seguro
+    function openSecureLogout() {
+      // Remover o event listener que causa o alerta do navegador
+      window.removeEventListener('beforeunload', handleBeforeUnload);
 
+      logoutModal.style.display = 'flex';
+      logoutPassword.value = '';
+      logoutAttempts = 3;
+      attemptsMessage.textContent = `Tentativas restantes: ${logoutAttempts}`;
+      logoutPassword.focus();
+    }
+
+    // Adicionar event listener nomeado para poder removê-lo
+    function handleBeforeUnload(e) {
+      e.preventDefault();
+      e.returnValue = "Tem certeza que deseja sair? As alterações podem não estar salvas.";
+    }
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    // Evento para abrir o modal quando clicar em Logout
+    document.getElementById('btnLogout')?.addEventListener('click', openSecureLogout);
+    // Evento para cancelar o logout
+    cancelLogout.addEventListener('click', () => {
+      logoutModal.style.display = 'none';
+      // Re-adicionar o event listener após cancelar
+      window.addEventListener('beforeunload', handleBeforeUnload);
+    });
+    // Evento para confirmar o logout
+    confirmLogout.addEventListener('click', () => {
+      const password = logoutPassword.value.trim();
+      if (password === ADMIN_PASSWORD) {
+        // Remover completamente o evento antes de limpar localStorage
+        window.removeEventListener('beforeunload', handleBeforeUnload);
+        // Limpar todos os dados do localStorage
+        localStorage.clear();
+        // Redirecionar para a página de login
+        window.location.href = 'login.html';
+      } else {
+        logoutAttempts--;
+        if (logoutAttempts > 0) {
+          attemptsMessage.textContent = `Senha incorreta! Tentativas restantes: ${logoutAttempts}`;
+          attemptsMessage.style.color = '#ff9800';
+          logoutPassword.value = '';
+          logoutPassword.focus();
+          // Efeito visual de erro
+          logoutPassword.style.borderColor = '#ff9800';
+          setTimeout(() => {
+            logoutPassword.style.borderColor = '#444';
+          }, 1000);
+        } else {
+          // Bloquear após 3 tentativas
+          attemptsMessage.textContent = 'Acesso bloqueado! Entre em contato com o administrador.';
+          attemptsMessage.style.color = '#f44336';
+          logoutPassword.disabled = true;
+          confirmLogout.disabled = true;
+          setTimeout(() => {
+            logoutModal.style.display = 'none';
+            logoutPassword.disabled = false;
+            confirmLogout.disabled = false;
+            // Re-adicionar o event listener após bloqueio
+            window.addEventListener('beforeunload', handleBeforeUnload);
+          }, 3000);
+        }
+      }
+    });
+    // Fechar modal ao pressionar Esc
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && logoutModal.style.display === 'flex') {
+        logoutModal.style.display = 'none';
+        // Re-adicionar o event listener após fechar com Esc
+        window.addEventListener('beforeunload', handleBeforeUnload);
+      }
+    });
+    // Adicionar event listener nomeado para poder removê-lo
+    function handleBeforeUnload(e) {
+      e.preventDefault();
+      e.returnValue = "Tem certeza que deseja sair? As alterações podem não estar salvas.";
+    }
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
     let formulario = document.querySelector("form");
     if (formulario) {
       let enviado = false;
@@ -157,7 +304,6 @@
         }
       });
     }
-
     function salvarLocalmente(chave, valor) {
       try {
         localStorage.setItem(chave, JSON.stringify(valor));
@@ -171,21 +317,17 @@
         // Calcular uso do localStorage
         const totalSpace = 5 * 1024 * 1024; // 5MB
         let usedSpace = 0;
-
         for (let key in localStorage) {
           if (localStorage.hasOwnProperty(key)) {
             usedSpace += localStorage[key].length * 2; // Cada caractere = 2 bytes
           }
         }
-
         const percentage = Math.round((usedSpace / totalSpace) * 100);
         const fillElement = document.getElementById('storage-fill');
         const textElement = document.getElementById('storage-text');
-
         if (fillElement && textElement) {
           fillElement.style.width = `${percentage}%`;
           textElement.textContent = `${percentage}% usado`;
-
           // Mudar cor conforme o uso
           if (percentage > 90) {
             fillElement.style.backgroundColor = '#f44336';
@@ -199,30 +341,21 @@
         console.error("Erro ao calcular armazenamento:", e);
       }
     }
-
     // Atualizar a cada 30 segundos
     setInterval(updateStorageIndicator, 30000);
     updateStorageIndicator();
-
     // Abrir tutorial
     document.getElementById('tutorial-btn')?.addEventListener('click', function () {
       window.open('tutorial.html', '_blank', 'width=800,height=600');
     });
-
     document.addEventListener('DOMContentLoaded', function () {
       const plantao = localStorage.getItem('plantao');
       if (plantao) {
         document.getElementById('plantao-info').textContent = `Plantão: ${plantao}`;
       }
-
-      document.getElementById('btnLogout').addEventListener('click', function () {
-        localStorage.removeItem('plantao');
-        window.location.href = 'login.html';
-      });
+      // Não é mais necessário o evento de logout aqui, pois já foi atribuído acima
     });
-
   </script>
-
 </body>
 
 </html>
