@@ -146,7 +146,7 @@
       </div>
       <div class="footer-right">
         <div class="version-info">
-          <span>INVIOKM Beta v1.6</span>
+          <span>INVIOKM Beta v1.6.5</span>
           <span class="developer">desenvolvido por Lucas Medice</span>
           <a href="https://www.linkedin.com/in/lucas-medice" target="_blank">
             <img src="assets/linkedin-logo.png" alt="LinkedIn" class="linkedin-logo">
@@ -174,6 +174,7 @@
   <!-- Manter o input file escondido -->
   <input type="file" id="fileInput" accept=".json" style="display: none;" />
   <!-- Modal de Logout Seguro -->
+  <!-- Modal de Logout Seguro -->
   <div id="logoutModal"
     style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); z-index: 10000; align-items: center; justify-content: center;">
     <div class="secure-logout-box"
@@ -185,7 +186,10 @@
         style="color: #f44336; margin-bottom: 20px; font-size: 1.8rem; text-transform: uppercase; letter-spacing: 1px;">
         LOGOUT SEGURO</h2>
       <p style="color: #ddd; margin-bottom: 25px; line-height: 1.6;">Para garantir a segurança dos dados, confirme sua
-        identidade antes de sair do sistema. Todos os dados serão permanentemente apagados após o logout. SENHA = BATMAN (TUDO MAIÚSCULO)</p>
+        identidade antes de sair do sistema. Todos os dados serão permanentemente apagados após o logout.</p>
+      <p style="color: #4CAF50; margin-bottom: 15px; font-weight: bold;">⚠️ Será feito backup automático em Excel antes
+        de sair.</p>
+      <p style="color: #ddd; margin-bottom: 25px; font-size: 0.9rem;">SENHA = BATMAN (TUDO MAIÚSCULO)</p>
 
       <input type="password" id="logoutPassword" class="password-input" placeholder="Digite a senha de administrador"
         autocomplete="off"
@@ -202,6 +206,55 @@
       </div>
     </div>
   </div>
+
+  <script>
+    // Evento para confirmar o logout
+    confirmLogout.addEventListener('click', async () => {
+      const password = logoutPassword.value.trim();
+      if (password === ADMIN_PASSWORD) {
+        try {
+          // Exportar para Excel antes de sair
+          await exportarParaExcelAutomatico();
+
+          // Remover completamente o evento antes de limpar localStorage
+          window.removeEventListener('beforeunload', handleBeforeUnload);
+          // Limpar todos os dados do localStorage
+          localStorage.clear();
+          // Redirecionar para a página de login
+          window.location.href = 'login.html';
+        } catch (e) {
+          console.error('Erro ao exportar antes de sair:', e);
+          mostrarAlerta('Erro ao exportar dados antes de sair. Tente exportar manualmente.');
+        }
+      } else {
+        logoutAttempts--;
+        if (logoutAttempts > 0) {
+          attemptsMessage.textContent = `Senha incorreta! Tentativas restantes: ${logoutAttempts}`;
+          attemptsMessage.style.color = '#ff9800';
+          logoutPassword.value = '';
+          logoutPassword.focus();
+          // Efeito visual de erro
+          logoutPassword.style.borderColor = '#ff9800';
+          setTimeout(() => {
+            logoutPassword.style.borderColor = '#444';
+          }, 1000);
+        } else {
+          // Bloquear após 3 tentativas
+          attemptsMessage.textContent = 'Acesso bloqueado! Entre em contato com o administrador.';
+          attemptsMessage.style.color = '#f44336';
+          logoutPassword.disabled = true;
+          confirmLogout.disabled = true;
+          setTimeout(() => {
+            logoutModal.style.display = 'none';
+            logoutPassword.disabled = false;
+            confirmLogout.disabled = false;
+            // Re-adicionar o event listener após bloqueio
+            window.addEventListener('beforeunload', handleBeforeUnload);
+          }, 3000);
+        }
+      }
+    });
+  </script>
   <script>
     // Senha de administrador
     const ADMIN_PASSWORD = "BATMAN";
