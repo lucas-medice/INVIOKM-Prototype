@@ -42,12 +42,15 @@ const historicoMovel = JSON.parse(localStorage.getItem('historicoMovel')) || {};
 
 // Função para formatar número do móvel com 2 dígitos
 function formatarNumeroMovel(numero) {
-  // Remove qualquer caractere não numérico
   const apenasNumeros = numero.replace(/\D/g, '');
-  
-  // Formata para 2 dígitos, adicionando zero à esquerda se necessário
-  return apenasNumeros.padStart(2, '0');
+
+  if (apenasNumeros === '') return '';
+
+  const doisDigitos = apenasNumeros.slice(0, 2);
+
+  return doisDigitos.padStart(2, '0');
 }
+
 
 // Aplicar formatação enquanto digita
 movelInput.addEventListener('input', function() {
