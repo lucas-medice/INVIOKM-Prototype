@@ -86,7 +86,7 @@
         }
 
         #btnRefresh:hover {
-            background: linear-gradient(135deg, #FB8C00, #E65100);
+            background: linear-gradient(135deg, #616161, #424242);
             transform: translateY(-2px);
         }
 
@@ -261,7 +261,8 @@
             <div class="footer-right">
                 <div class="version-info">
                     <span>INVIOKM Beta v1.6.5</span>
-                    <span class="developer">desenvolvido por Lucas Medice</span>
+                    <span class="developer">desenvolvido por <a
+                            href="https://lucas-medice.github.io/portifolio-v2" target="_blank">Lucas Medice</a></span>
                     <a href="https://www.linkedin.com/in/lucas-medice" target="_blank">
                         <img src="assets/linkedin-logo.png" alt="LinkedIn" class="linkedin-logo">
                     </a>
@@ -272,9 +273,25 @@
 
     <script>
         document.addEventListener("DOMContentLoaded", () => {
+            // Configurar refresh automático a cada 1 minuto (60000 ms)
+            const refreshInterval = setInterval(() => {
+                location.reload();
+            }, 60000);
+
+            // Limpar intervalo quando a página for fechada
+            window.addEventListener('beforeunload', () => {
+                clearInterval(refreshInterval);
+            });
+
+            const btnRefresh = document.getElementById('btnRefresh');
+
+            // Modificar o botão refresh para apenas recarregar a página
+            btnRefresh.addEventListener('click', () => {
+                location.reload();
+            });
+
             const btnExportar = document.getElementById('btnExportar');
             const btnAlterar = document.getElementById('btnAlterar');
-            const btnRefresh = document.getElementById('btnRefresh');
             const tabela = document.querySelector('.tabela tbody');
             const modalEdicao = document.getElementById('modal-edicao');
             const formEdicao = document.getElementById('form-edicao');
@@ -282,76 +299,10 @@
 
             let linhaSelecionada = null;
 
-            // Função para ordenar a tabela por horário de saída
-            function ordenarTabelaPorSaida() {
-                const linhas = Array.from(tabela.querySelectorAll('tr'));
+            // Carregar dados ao iniciar
+            carregarDados();
 
-                linhas.sort((a, b) => {
-                    const saidaA = a.cells[4].innerText;
-                    const saidaB = b.cells[4].innerText;
-
-                    // Converter para objetos Date para comparação
-                    const dataA = parseDataHora(saidaA);
-                    const dataB = parseDataHora(saidaB);
-
-                    return dataA - dataB; // Ordem crescente (mais antigo primeiro)
-                });
-
-                // Reinserir as linhas ordenadas
-                linhas.forEach(linha => tabela.appendChild(linha));
-            }
-
-            // Função auxiliar para converter texto em Date
-            function parseDataHora(texto) {
-                if (!texto) return new Date(0);
-
-                try {
-                    const [dataParte, horaParte] = texto.split(' - ');
-                    const [dia, mes, ano] = dataParte.split('/');
-                    const [horas, minutos] = horaParte.split(':');
-
-                    // Ano 20XX (assumindo século 21)
-                    const anoCompleto = 2000 + parseInt(ano);
-
-                    return new Date(anoCompleto, mes - 1, dia, horas, minutos);
-                } catch (e) {
-                    console.error('Erro ao parsear data:', texto, e);
-                    return new Date(0);
-                }
-            }
-
-            // Carregar dados ordenados
-            function carregarDados() {
-                const dados = JSON.parse(localStorage.getItem('tabelaBackup')) || [];
-                const historico = JSON.parse(localStorage.getItem('historicoMovel')) || {};
-
-                if (dados) {
-                    // Ordenar dados antes de exibir
-                    dados.sort((a, b) => {
-                        const dataA = parseDataHora(a[4] || '');
-                        const dataB = parseDataHora(b[4] || '');
-                        return dataA - dataB;
-                    });
-
-                    dados.forEach(row => {
-                        const novaLinha = tabela.insertRow();
-                        for (let i = 0; i < 8; i++) {
-                            const celula = novaLinha.insertCell();
-                            celula.innerText = row[i] || '';
-                        }
-                        if (row.length > 8 && row[8] === 'Técnico') {
-                            novaLinha.classList.add('tecnico');
-                        }
-                    });
-                }
-            }
-
-            // Event listeners
-            btnRefresh.addEventListener('click', () => {
-                ordenarTabelaPorSaida();
-                mostrarAlerta('Tabela atualizada e ordenada por horário de saída');
-            });
-
+            // Evento para exportar para Excel
             btnExportar.addEventListener('click', () => {
                 const tabelaDOM = document.querySelector('.tabela');
                 const wb = XLSX.utils.book_new();
@@ -461,10 +412,25 @@
                 linhaSelecionada = linha;
                 btnAlterar.disabled = false;
             });
-
-            // Carregar dados ao iniciar
-            carregarDados();
         });
+
+        function carregarDados() {
+            const dados = JSON.parse(localStorage.getItem('tabelaBackup')) || [];
+            const tabela = document.querySelector('.tabela tbody');
+
+            if (dados) {
+                dados.forEach(row => {
+                    const novaLinha = tabela.insertRow();
+                    for (let i = 0; i < 8; i++) {
+                        const celula = novaLinha.insertCell();
+                        celula.innerText = row[i] || '';
+                    }
+                    if (row.length > 8 && row[8] === 'Técnico') {
+                        novaLinha.classList.add('tecnico');
+                    }
+                });
+            }
+        }
 
         function limparDadosTabela() {
             if (confirm('Deseja realmente apagar todos os dados da tabela?\nEsta ação não pode ser desfeita.')) {
@@ -523,19 +489,6 @@
         // Abrir tutorial
         document.getElementById('tutorial-btn')?.addEventListener('click', function () {
             window.open('tutorial.html', '_blank', 'width=800,height=600');
-        });
-
-        // Adicione este script no final do body
-        document.addEventListener('DOMContentLoaded', function () {
-            const plantao = localStorage.getItem('plantao');
-            if (plantao) {
-                document.getElementById('plantao-info').textContent = `Plantão: ${plantao}`;
-            }
-
-            document.getElementById('btnLogout').addEventListener('click', function () {
-                localStorage.removeItem('plantao');
-                window.location.href = 'login.html';
-            });
         });
 
         function mostrarAlerta(mensagem) {

@@ -408,6 +408,16 @@ footer {
   font-size: 0.7rem;
 }
 
+.version-info .developer a {
+  color: #ff0000de;
+  font-size: 0.7rem;
+  text-decoration: none;
+}
+
+.version-info .developer a:hover {
+  text-shadow: 0 0 5px #ff0000de;
+}
+
 .linkedin-logo {
   width: 14px;
   height: 14px;
