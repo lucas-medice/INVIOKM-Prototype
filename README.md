@@ -1,4 +1,4 @@
-# 🚗 INVIOKM - Sistema de Controle de Quilometragem
+# INVIOKM - Sistema de Controle de Quilometragem
 
 Sistema web para controle e gestão de quilometragem de veículos, desenvolvido para otimizar o registro de saídas e chegadas de móveis durante plantões.
 
@@ -59,4 +59,54 @@ Sistema web para controle e gestão de quilometragem de veículos, desenvolvido 
 - **📄 Ver Tabela**: Página completa com todas as ocorrências
 - **Excel**: Exportação formatada com data e nome do plantão
 
-## 📁 Estrutura do Projeto
+
+## ⚙️ Recursos Avançados
+
+### 🎯 Edição Rápida
+- **Clique simples** em "Destinos" ou "OBS" para editar
+- **Duplo clique** em outras células para apagar ocorrência
+
+### 🔄 Sistema de Importação
+- **Mesclar**: Combina dados importados com existentes
+- **Sobrescrever**: Substitui todos os dados atuais
+
+### 📈 Controle de Armazenamento
+- Barra de progresso no footer
+- Alertas quando o armazenamento estiver cheio
+- Limpeza segura de dados
+
+## 🛡️ Recursos de Segurança
+
+- **Senha de Logout**: "BATMAN" (em maiúsculo)
+- **Backup Automático**: Exportação em Excel antes do logout
+- **Bloqueio por Tentativas**: 3 tentativas erradas bloqueiam temporariamente
+- **Prevenção de Perda**: Alertas ao fechar a página com dados não salvos
+
+## 💡 Dicas Importantes
+
+### ✅ Boas Práticas
+- Exporte dados regularmente para backup
+- Feche ocorrências assim que os veículos retornarem
+- Use observações para informações relevantes
+- Verifique o KM de saída antes de registrar
+
+### ❌ O Que Evitar
+- Não apague dados do navegador sem exportar antes
+- Não feche o navegador sem fazer logout adequado
+- Não registre KM de chegada menor que o de saída
+
+## 🔄 Atualizações Futuras
+
+- [ ] Sincronização em nuvem
+- [ ] Relatórios estatísticos
+- [ ] Controle de usuários com níveis de acesso
+- [ ] Integração com outros sistemas
+
+## 👨‍💻 Desenvolvimento
+
+**Desenvolvedor**: Lucas Medice  
+**Versão**: Beta v1.6.6  
+**LinkedIn**: [lucas-medice](https://www.linkedin.com/in/lucas-medice)  
+**Portfólio**: [lucas-medice.github.io/portifolio-v2](https://lucas-medice.github.io/portifolio-v2)
+
+**⚠️ Aviso**: Este sistema armazena dados localmente no navegador. Exporte regularmente para evitar perda de informações.
